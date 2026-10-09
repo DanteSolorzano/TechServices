@@ -5,11 +5,11 @@ namespace Backend_EnTeck.Data;
 
 public class ApplicationDbContext : DbContext
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) 
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
     }
 
     public DbSet<User> Users { get; set; } = null!;
-    public DbSet<SolicitudServicio> SolicitudServicios { get; set; } = null!;
+    public DbSet<SolicitudServicio> SolicitudesServicio { get; set; } = null!;
 }
