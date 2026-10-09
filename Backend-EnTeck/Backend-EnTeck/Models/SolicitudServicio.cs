@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Backend_EnTeck.Models;
@@ -18,7 +19,7 @@ public class SolicitudServicio
     public string Problema { get; set; } = string.Empty;
 
     [Column("estado")]
-    public string Estado { get; set; } = string.Empty;
+    public string Estado { get; set; } = "Recibido"; // Recibido, En Diagnóstico, En Reparación, Listo
 
     [Column("fecha_recibido")]
     public DateTime FechaRecibido { get; set; }
@@ -28,4 +29,14 @@ public class SolicitudServicio
 
     [Column("id_cliente")]
     public int IdCliente { get; set; }
+
+    // --- Mapeo para US-011 (Reparto de trabajo a técnicos) ---
+    [Column("id_tecnico")]
+    public int? IdTecnico { get; set; }
+
+    [Column("nombre_tecnico")]
+    public string? NombreTecnico { get; set; }
+
+    [Column("fecha_asignacion")]
+    public DateTime? FechaAsignacion { get; set; }
 }
