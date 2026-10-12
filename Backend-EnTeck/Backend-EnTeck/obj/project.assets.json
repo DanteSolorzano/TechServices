@@ -1278,19 +1278,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\DGTITBESPINOZAG\\.nuget\\packages\\": {}
+    "C:\\Users\\aisli\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\DGTITBESPINOZAG\\Documents\\Enteck-platform\\Backend-EnTeck\\Backend-EnTeck\\Backend-EnTeck.csproj",
+      "projectUniqueName": "C:\\Users\\aisli\\Documents\\IngSoftware\\Enteck-platform\\Backend-EnTeck\\Backend-EnTeck\\Backend-EnTeck.csproj",
       "projectName": "Backend-EnTeck",
-      "projectPath": "C:\\Users\\DGTITBESPINOZAG\\Documents\\Enteck-platform\\Backend-EnTeck\\Backend-EnTeck\\Backend-EnTeck.csproj",
-      "packagesPath": "C:\\Users\\DGTITBESPINOZAG\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\DGTITBESPINOZAG\\Documents\\Enteck-platform\\Backend-EnTeck\\Backend-EnTeck\\obj\\",
+      "projectPath": "C:\\Users\\aisli\\Documents\\IngSoftware\\Enteck-platform\\Backend-EnTeck\\Backend-EnTeck\\Backend-EnTeck.csproj",
+      "packagesPath": "C:\\Users\\aisli\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\aisli\\Documents\\IngSoftware\\Enteck-platform\\Backend-EnTeck\\Backend-EnTeck\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\DGTITBESPINOZAG\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\aisli\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net10.0"
