@@ -17,7 +17,6 @@ public class SolicitudesController : ControllerBase
     }
 
     // GET: api/solicitudes/pendientes
-    // Obtener las solicitudes de servicio para el panel de administración
     [HttpGet("pendientes")]
     public async Task<IActionResult> GetPendientes()
     {
@@ -29,9 +28,9 @@ public class SolicitudesController : ControllerBase
     }
 
     // PUT: api/solicitudes/{id}/asignar
-    // US-011: Asignar un técnico a la orden de trabajo
     [HttpPut("{id}/asignar")]
-    public async Task<IActionResult> AsignarTecnico(int id, [FromBody] AsignarTecnicoDto dto)
+    [HttpPost("{id}/asignar")]
+    public async Task<IActionResult> AsignarTecnico(int id, [FromBody] ActualizarOrdenDto dto)
     {
         var orden = await _context.SolicitudesServicio.FindAsync(id);
         if (orden == null)
@@ -39,49 +38,42 @@ public class SolicitudesController : ControllerBase
             return NotFound(new { mensaje = "La orden de servicio no existe." });
         }
 
-        orden.IdTecnico = dto.IdTecnico;
-        orden.NombreTecnico = dto.NombreTecnico;
-        orden.FechaAsignacion = DateTime.Now;
-        
-        if (string.IsNullOrEmpty(orden.Estado) || orden.Estado == "Recibido" || orden.Estado == "Pendiente")
+        // Si se envió un técnico, actualizarlo
+        if (dto.IdTecnico.HasValue && dto.IdTecnico.Value > 0)
+        {
+            orden.IdTecnico = dto.IdTecnico;
+            orden.NombreTecnico = dto.NombreTecnico;
+            orden.FechaAsignacion = DateTime.Now;
+        }
+
+        // Si se envió estado, actualizarlo
+        if (!string.IsNullOrWhiteSpace(dto.Estado))
+        {
+            orden.Estado = dto.Estado;
+        }
+        else if (string.IsNullOrEmpty(orden.Estado) || orden.Estado == "Recibido" || orden.Estado == "Pendiente")
         {
             orden.Estado = "En Proceso";
         }
 
-        await _context.SaveChangesAsync();
-        return Ok(new { mensaje = "Técnico asignado exitosamente.", orden });
-    }
-
-    // PUT: api/solicitudes/{id}/estado
-    // US-012: Actualizar el estado del equipo y la fecha estimada de entrega (ETA)
-    [HttpPut("{id}/estado")]
-    public async Task<IActionResult> ActualizarEstado(int id, [FromBody] ActualizarEstadoDto dto)
-    {
-        var orden = await _context.SolicitudesServicio.FindAsync(id);
-        if (orden == null)
+        // Si se envió ETA, parsearlo y actualizarlo
+        if (!string.IsNullOrWhiteSpace(dto.Eta))
         {
-            return NotFound(new { mensaje = "La orden de servicio no existe." });
-        }
-
-        orden.Estado = dto.Estado;
-        if (!string.IsNullOrEmpty(dto.Eta))
-        {
-            orden.Eta = dto.Eta;
+            if (DateTime.TryParse(dto.Eta, out var fechaParseada))
+            {
+                orden.Eta = fechaParseada;
+            }
         }
 
         await _context.SaveChangesAsync();
-        return Ok(new { mensaje = "Estado y ETA actualizados exitosamente.", orden });
+        return Ok(new { mensaje = "Orden actualizada exitosamente.", orden });
     }
 }
 
-public class AsignarTecnicoDto
+public class ActualizarOrdenDto
 {
-    public int IdTecnico { get; set; }
-    public string NombreTecnico { get; set; } = string.Empty;
-}
-
-public class ActualizarEstadoDto
-{
-    public string Estado { get; set; } = string.Empty;
+    public int? IdTecnico { get; set; }
+    public string? NombreTecnico { get; set; }
+    public string? Estado { get; set; }
     public string? Eta { get; set; }
 }
