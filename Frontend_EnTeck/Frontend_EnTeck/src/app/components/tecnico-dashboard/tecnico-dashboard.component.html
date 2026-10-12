@@ -1,0 +1,33 @@
+<div class="tech-panel">
+  <div class="tech-title">🔧 Panel de Trabajo para Técnicos (US-012)</div>
+
+  <div class="grid-orders">
+    @for (orden of misOrdenes(); track orden.id) {
+      <div class="card-order">
+        <div class="card-header">
+          <span class="folio-badge">#{{ orden.id }}</span>
+          <small style="color: #888;">{{ orden.fechaRecibido | date:'shortDate' }}</small>
+        </div>
+
+        <div class="device-name">{{ orden.marca }} {{ orden.modelo }}</div>
+        <div class="problem-desc"><strong>Falla:</strong> {{ orden.problema }}</div>
+
+        <div style="margin-top: 1rem;">
+          <label style="font-size: 0.8rem; font-weight: bold; color: #555; display: block; margin-bottom: 4px;">
+            Actualizar Estado:
+          </label>
+          <select class="status-select" [value]="orden.estado" (change)="cambiarEstado(orden.id, $event)">
+            <option value="En Diagnostico">🟡 En Diagnóstico</option>
+            <option value="En Reparacion">🔵 En Reparación</option>
+            <option value="Esperando Repuesto">🟠 Esperando Repuesto</option>
+            <option value="Listo">🟢 Listo para Entrega</option>
+          </select>
+        </div>
+      </div>
+    } @empty {
+      <div style="grid-column: 1 / -1; text-align: center; color: #888; padding: 3rem;">
+        ☕ No tienes órdenes asignadas pendientes en este momento.
+      </div>
+    }
+  </div>
+</div>
