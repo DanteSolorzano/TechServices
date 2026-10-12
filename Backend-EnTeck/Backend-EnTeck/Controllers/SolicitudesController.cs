@@ -17,20 +17,20 @@ public class SolicitudesController : ControllerBase
     }
 
     // GET: api/solicitudes/pendientes
-    // Obtener las solicitudes sin técnico asignado
     [HttpGet("pendientes")]
     public async Task<IActionResult> GetPendientes()
     {
-        var pendientes = await _context.SolicitudesServicio
-            .Where(s => s.IdTecnico == null)
+        var solicitudes = await _context.SolicitudesServicio
+            .OrderByDescending(s => s.Id)
             .ToListAsync();
-        return Ok(pendientes);
+            
+        return Ok(solicitudes);
     }
 
-    // POST: api/solicitudes/{id}/asignar
-    // US-011: Asignar un técnico a la orden de trabajo
+    // PUT: api/solicitudes/{id}/asignar
+    [HttpPut("{id}/asignar")]
     [HttpPost("{id}/asignar")]
-    public async Task<IActionResult> AsignarTecnico(int id, [FromBody] AsignarTecnicoDto dto)
+    public async Task<IActionResult> AsignarTecnico(int id, [FromBody] ActualizarOrdenDto dto)
     {
         var orden = await _context.SolicitudesServicio.FindAsync(id);
         if (orden == null)
@@ -38,22 +38,42 @@ public class SolicitudesController : ControllerBase
             return NotFound(new { mensaje = "La orden de servicio no existe." });
         }
 
-        orden.IdTecnico = dto.IdTecnico;
-        orden.NombreTecnico = dto.NombreTecnico;
-        orden.FechaAsignacion = DateTime.Now;
-        
-        if (string.IsNullOrEmpty(orden.Estado) || orden.Estado == "Recibido")
+        // Si se envió un técnico, actualizarlo
+        if (dto.IdTecnico.HasValue && dto.IdTecnico.Value > 0)
         {
-            orden.Estado = "En Diagnóstico";
+            orden.IdTecnico = dto.IdTecnico;
+            orden.NombreTecnico = dto.NombreTecnico;
+            orden.FechaAsignacion = DateTime.Now;
+        }
+
+        // Si se envió estado, actualizarlo
+        if (!string.IsNullOrWhiteSpace(dto.Estado))
+        {
+            orden.Estado = dto.Estado;
+        }
+        else if (string.IsNullOrEmpty(orden.Estado) || orden.Estado == "Recibido" || orden.Estado == "Pendiente")
+        {
+            orden.Estado = "En Proceso";
+        }
+
+        // Si se envió ETA, parsearlo y actualizarlo
+        if (!string.IsNullOrWhiteSpace(dto.Eta))
+        {
+            if (DateTime.TryParse(dto.Eta, out var fechaParseada))
+            {
+                orden.Eta = fechaParseada;
+            }
         }
 
         await _context.SaveChangesAsync();
-        return Ok(new { mensaje = "Técnico asignado exitosamente.", orden });
+        return Ok(new { mensaje = "Orden actualizada exitosamente.", orden });
     }
 }
 
-public class AsignarTecnicoDto
+public class ActualizarOrdenDto
 {
-    public int IdTecnico { get; set; }
-    public string NombreTecnico { get; set; } = string.Empty;
+    public int? IdTecnico { get; set; }
+    public string? NombreTecnico { get; set; }
+    public string? Estado { get; set; }
+    public string? Eta { get; set; }
 }
