@@ -27,7 +27,19 @@ public class SolicitudesController : ControllerBase
         return Ok(solicitudes);
     }
 
-    // PUT: api/solicitudes/{id}/asignar
+    // GET: api/solicitudes/cliente/2
+    [HttpGet("cliente/{clienteId}")]
+    public async Task<IActionResult> GetPorCliente(int clienteId)
+    {
+        var solicitudes = await _context.SolicitudesServicio
+            .Where(s => s.IdCliente == clienteId)
+            .OrderByDescending(s => s.Id)
+            .ToListAsync();
+
+        return Ok(solicitudes);
+    }
+
+    // PUT/POST: api/solicitudes/{id}/asignar
     [HttpPut("{id}/asignar")]
     [HttpPost("{id}/asignar")]
     public async Task<IActionResult> AsignarTecnico(int id, [FromBody] ActualizarOrdenDto dto)
@@ -38,7 +50,6 @@ public class SolicitudesController : ControllerBase
             return NotFound(new { mensaje = "La orden de servicio no existe." });
         }
 
-        // Si se envió un técnico, actualizarlo
         if (dto.IdTecnico.HasValue && dto.IdTecnico.Value > 0)
         {
             orden.IdTecnico = dto.IdTecnico;
@@ -46,7 +57,6 @@ public class SolicitudesController : ControllerBase
             orden.FechaAsignacion = DateTime.Now;
         }
 
-        // Si se envió estado, actualizarlo
         if (!string.IsNullOrWhiteSpace(dto.Estado))
         {
             orden.Estado = dto.Estado;
@@ -56,7 +66,6 @@ public class SolicitudesController : ControllerBase
             orden.Estado = "En Proceso";
         }
 
-        // Si se envió ETA, parsearlo y actualizarlo
         if (!string.IsNullOrWhiteSpace(dto.Eta))
         {
             if (DateTime.TryParse(dto.Eta, out var fechaParseada))

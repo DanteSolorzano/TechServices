@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators'; // <-- Agregar esta importación
 
 export interface ServiceOrder {
   id: number;
@@ -21,10 +22,13 @@ export interface ServiceOrder {
 })
 export class ServiceOrderService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://127.0.0.1:5190/api/solicitudes';
+  private apiUrl = 'http://localhost:5190/api/solicitudes';
 
-  getClientOrders(userId: string): Observable<ServiceOrder[]> {
-    return this.http.get<ServiceOrder[]>(`${this.apiUrl}/client/${userId}`);
+  getClientOrders(clientId: string | number): Observable<ServiceOrder[]> {
+    // Consume la ruta que SÍ responde (/pendientes) y filtra las del cliente actual
+    return this.http.get<ServiceOrder[]>(`${this.apiUrl}/pendientes`).pipe(
+      map(ordenes => ordenes.filter(o => o.idCliente === Number(clientId)))
+    );
   }
 
   getPendientes(): Observable<ServiceOrder[]> {
@@ -38,7 +42,6 @@ export class ServiceOrderService {
     });
   }
 
-  // --- MÉTODOS PARA LA US-012 (PANTALLA DE TÉCNICOS) ---
   getOrdenesPorTecnico(tecnicoId: number): Observable<ServiceOrder[]> {
     return this.http.get<ServiceOrder[]>(`${this.apiUrl}/tecnico/${tecnicoId}`);
   }
