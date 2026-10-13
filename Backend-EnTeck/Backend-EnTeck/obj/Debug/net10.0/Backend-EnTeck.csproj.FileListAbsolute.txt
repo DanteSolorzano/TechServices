@@ -144,3 +144,11 @@ C:\Users\aisli\Documents\IngSoftware\Enteck-platform\Backend-EnTeck\Backend-EnTe
 C:\Users\aisli\Documents\IngSoftware\Enteck-platform\Backend-EnTeck\Backend-EnTeck\obj\Debug\net10.0\Backend-EnTeck.pdb
 C:\Users\aisli\Documents\IngSoftware\Enteck-platform\Backend-EnTeck\Backend-EnTeck\obj\Debug\net10.0\Backend-EnTeck.genruntimeconfig.cache
 C:\Users\aisli\Documents\IngSoftware\Enteck-platform\Backend-EnTeck\Backend-EnTeck\obj\Debug\net10.0\ref\Backend-EnTeck.dll
+C:\Users\aisli\AppData\Local\Temp\Enteck-build-check\appsettings.Development.json
+C:\Users\aisli\AppData\Local\Temp\Enteck-build-check\appsettings.json
+C:\Users\aisli\AppData\Local\Temp\Enteck-build-check\Backend-EnTeck.staticwebassets.endpoints.json
+C:\Users\aisli\AppData\Local\Temp\Enteck-build-check\Backend-EnTeck.exe
+C:\Users\aisli\AppData\Local\Temp\Enteck-build-check\Backend-EnTeck.deps.json
+C:\Users\aisli\AppData\Local\Temp\Enteck-build-check\Backend-EnTeck.runtimeconfig.json
+C:\Users\aisli\AppData\Local\Temp\Enteck-build-check\Backend-EnTeck.dll
+C:\Users\aisli\AppData\Local\Temp\Enteck-build-check\Backend-EnTeck.pdb

@@ -24,7 +24,7 @@ export class ServiceOrderService {
   private apiUrl = 'http://127.0.0.1:5190/api/solicitudes';
 
   getClientOrders(userId: string): Observable<ServiceOrder[]> {
-    return this.http.get<ServiceOrder[]>(`${this.apiUrl}/client/${userId}`);
+    return this.http.get<ServiceOrder[]>(`http://127.0.0.1:5190/api/service-order/client/${userId}`);
   }
 
   getPendientes(): Observable<ServiceOrder[]> {
