@@ -1,6 +1,8 @@
 using Backend_EnTeck.Data;
 using Backend_EnTeck.Models;
 using Microsoft.EntityFrameworkCore;
+using Backend_EnTeck.Services;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,8 +17,15 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader();
     });
 });
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Registrar HttpClient y WhatsAppService (US-014)
+builder.Services.AddHttpClient<IWhatsAppService, WhatsAppService>();
+
+// Registrar controladores para rutas atribuidas ([ApiController])
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
@@ -24,8 +33,12 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
+app.UseHttpsRedirection();
+app.UseCors("AllowAll");
+app.MapControllers();
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 
