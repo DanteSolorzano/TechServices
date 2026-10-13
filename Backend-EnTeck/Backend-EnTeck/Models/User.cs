@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Backend_EnTeck.Models;
 
-[Table("Clientes")]
+[Table("Usuarios")]
 public class User
 {
     [Column("id")]
