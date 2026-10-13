@@ -39,4 +39,11 @@ public class SolicitudServicio
 
     [Column("fecha_asignacion")]
     public DateTime? FechaAsignacion { get; set; }
+
+    // --- Mapeo para US-013 (Registro de Diagnóstico y Piezas) ---
+    [Column("diagnostico")]
+    public string? Diagnostico { get; set; }
+
+    [Column("piezas_utilizadas")]
+    public string? PiezasUtilizadas { get; set; }
 }
