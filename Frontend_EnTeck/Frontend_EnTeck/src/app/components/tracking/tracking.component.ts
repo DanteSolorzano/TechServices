@@ -1,7 +1,7 @@
 import { Component, signal, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AuthService } from '../../services/auth.service';
+import { ActivatedRoute } from '@angular/router';
 import { ServiceOrderService, ServiceOrder } from '../../services/service-order.service';
 
 @Component({
@@ -12,72 +12,85 @@ import { ServiceOrderService, ServiceOrder } from '../../services/service-order.
   template: `
     <div class="tracking-container">
       <div class="tracking-content">
-        <h2>📋 Mis Órdenes de Servicio</h2>
-        <p class="subtitle">Consulta el estado y tiempo estimado de entrega de tus equipos en reparación.</p>
+        <h2>📋 Rastreo Público de Orden de Servicio</h2>
+        <p class="subtitle">Consulta el estado, avance y fecha estimada de entrega de tu equipo ingresando tu número de folio.</p>
+
+        <!-- Search Bar -->
+        <div class="search-box">
+          <input 
+            type="text" 
+            [(ngModel)]="searchId" 
+            placeholder="Ejemplo: 2 o ORD-101" 
+            (keyup.enter)="buscarOrden()"
+            [disabled]="loading()"
+          />
+          <button (click)="buscarOrden()" [disabled]="loading()">
+            🔍 Consultar
+          </button>
+        </div>
 
         <!-- Loading State -->
         @if (loading()) {
           <div class="loading">
-            <span class="spinner"></span> Cargando órdenes...
+            <span class="spinner"></span> Buscando información de tu equipo...
           </div>
         }
 
         <!-- Error State -->
         @if (error()) {
           <div class="error-msg">
-            ❌ Error al cargar las órdenes. Por favor intenta más tarde.
+            ❌ {{ error() }}
           </div>
         }
 
-        <!-- Orders List -->
-        @if (!loading() && orders().length > 0) {
+        <!-- Order Result Card -->
+        @if (!loading() && order()) {
           <div class="orders-list">
-            @for (order of orders(); track order.id) {
-              <div class="order-card" [ngClass]="'status-' + sanitizeClass(order.estado)">
-                <div class="order-header">
-                  <div class="order-info">
-                    <h3>{{ order.marca || 'Equipo' }} {{ order.modelo || '' }}</h3>
-                    <p class="problem">{{ order.problema }}</p>
-                  </div>
-                  <div class="order-id">Orden #{{ order.id }}</div>
+            <div class="order-card" [ngClass]="'status-' + sanitizeClass(order()!.estado)">
+              <div class="order-header">
+                <div class="order-info">
+                  <h3>{{ order()!.marca || 'Equipo' }} {{ order()!.modelo || '' }}</h3>
+                  <p class="problem"><strong>Problema reportado:</strong> {{ order()!.problema }}</p>
                 </div>
-
-                <div class="order-details">
-                  <div class="detail-row">
-                    <span class="label">Estado Actual:</span>
-                    <span class="status-badge" [ngClass]="'badge-' + sanitizeClass(order.estado)">
-                      {{ getStatusText(order.estado) }}
-                    </span>
-                  </div>
-                  <div class="detail-row">
-                    <span class="label">Fecha de Recepción:</span>
-                    <span>{{ formatDate(order.fechaRecibido) }}</span>
-                  </div>
-                  <div class="detail-row">
-                    <span class="label">Fecha Estimada (ETA):</span>
-                    <span class="eta-highlight">{{ formatDate(order.eta) }}</span>
-                  </div>
-                  @if (order.nombreTecnico) {
-                    <div class="detail-row">
-                      <span class="label">Técnico Asignado:</span>
-                      <span>{{ order.nombreTecnico }}</span>
-                    </div>
-                  }
-                </div>
-
-                <div class="progress-container">
-                  <div class="progress-bar">
-                    <div class="progress-fill" [style.width]="getProgress(order.estado) + '%'"></div>
-                  </div>
-                  <span class="progress-text">{{ getProgress(order.estado) }}% Completado</span>
-                </div>
+                <div class="order-id">Orden #{{ order()!.id }}</div>
               </div>
-            }
+
+              <div class="order-details">
+                <div class="detail-row">
+                  <span class="label">Estado Actual:</span>
+                  <span class="status-badge" [ngClass]="'badge-' + sanitizeClass(order()!.estado)">
+                    {{ getStatusText(order()!.estado) }}
+                  </span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Fecha de Recepción:</span>
+                  <span>{{ formatDate(order()!.fechaRecibido) }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Fecha Estimada (ETA):</span>
+                  <span class="eta-highlight">{{ formatDate(order()!.eta) }}</span>
+                </div>
+                @if (order()!.nombreTecnico) {
+                  <div class="detail-row">
+                    <span class="label">Técnico Asignado:</span>
+                    <span>{{ order()!.nombreTecnico }}</span>
+                  </div>
+                }
+              </div>
+
+              <!-- Progress Bar -->
+              <div class="progress-container">
+                <div class="progress-bar">
+                  <div class="progress-fill" [style.width]="getProgress(order()!.estado) + '%'"></div>
+                </div>
+                <span class="progress-text">{{ getProgress(order()!.estado) }}% Completado</span>
+              </div>
+            </div>
           </div>
-        } @else if (!loading() && orders().length === 0) {
+        } @else if (!loading() && searched() && !order() && !error()) {
           <div class="no-orders">
             <span style="font-size: 40px;">📭</span>
-            <p>No tienes órdenes de servicio registradas en este momento.</p>
+            <p>No se encontró ninguna orden de servicio registrada con el folio especificado.</p>
           </div>
         }
       </div>
@@ -88,19 +101,27 @@ import { ServiceOrderService, ServiceOrder } from '../../services/service-order.
     .tracking-content { max-width: 900px; margin: 0 auto; }
     
     h2 { margin: 0 0 10px 0; color: #333; }
-    .subtitle { color: #666; margin-bottom: 30px; font-size: 14px; }
+    .subtitle { color: #666; margin-bottom: 25px; font-size: 14px; }
+
+    /* Search Box */
+    .search-box { display: flex; gap: 10px; margin-bottom: 30px; }
+    .search-box input { flex: 1; padding: 12px 16px; border: 2px solid #ddd; border-radius: 8px; font-size: 15px; outline: none; transition: border-color 0.2s; }
+    .search-box input:focus { border-color: #007bff; }
+    .search-box button { padding: 12px 24px; background: #007bff; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+    .search-box button:hover { background: #0056b3; }
+    .search-box button:disabled { background: #ccc; cursor: not-allowed; }
 
     /* Loading & Error */
     .loading { text-align: center; padding: 40px; background: white; border-radius: 12px; color: #007bff; font-weight: bold; }
     .spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #007bff; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 10px; vertical-align: middle; }
-    .error-msg { color: #d32f2f; background: #ffebee; padding: 20px; border-radius: 8px; text-align: center; font-weight: bold; }
+    .error-msg { color: #d32f2f; background: #ffebee; padding: 15px 20px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 20px; }
 
-    /* Cards */
+    /* Card */
     .orders-list { display: grid; gap: 20px; }
     .order-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 5px solid #007bff; transition: transform 0.2s, box-shadow 0.2s; }
     .order-card:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
 
-    /* Variaciones de border e identificadores */
+    /* Variaciones por Estado */
     .order-card.status-recibido { border-left-color: #6c757d; }
     .order-card.status-en-proceso { border-left-color: #007bff; }
     .order-card.status-esperando-refaccion { border-left-color: #ff9800; }
@@ -113,7 +134,7 @@ import { ServiceOrderService, ServiceOrder } from '../../services/service-order.
     .order-id { background: #eef2f5; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; color: #333; }
 
     .order-details { margin-bottom: 15px; }
-    .detail-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; border-bottom: 1px stroke #f9f9f9; }
+    .detail-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; border-bottom: 1px solid #f9f9f9; }
     .detail-row .label { font-weight: 600; color: #555; }
     .detail-row span { color: #333; }
     .eta-highlight { font-weight: bold; color: #007bff !important; }
@@ -132,48 +153,61 @@ import { ServiceOrderService, ServiceOrder } from '../../services/service-order.
     .progress-fill { height: 100%; background: #007bff; transition: width 0.5s ease; }
     .progress-text { font-size: 11px; color: #888; display: block; text-align: right; }
 
-    .no-orders { text-align: center; padding: 60px 20px; background: white; border-radius: 12px; color: #999; }
-    .no-orders p { margin: 20px 0 0 0; font-size: 16px; }
+    .no-orders { text-align: center; padding: 40px 20px; background: white; border-radius: 12px; color: #999; }
+    .no-orders p { margin: 15px 0 0 0; font-size: 15px; }
 
     @keyframes spin { 100% { transform: rotate(360deg); } }
   `]
 })
 export class TrackingComponent implements OnInit {
-  orders = signal<ServiceOrder[]>([]);
+  searchId = '';
+  order = signal<ServiceOrder | null>(null);
   loading = signal(false);
   error = signal('');
+  searched = signal(false);
 
-  private authService = inject(AuthService);
+  private route = inject(ActivatedRoute);
   private serviceOrderService = inject(ServiceOrderService);
 
   ngOnInit(): void {
-    this.loadOrders();
-  }
+  // 1. Obtener parámetro 'folio' o 'id' de la URL nativa (ej. /tracking?folio=2 o /tracking?id=2)
+  const urlParams = new URLSearchParams(window.location.search);
+  const folioFromUrl = urlParams.get('folio') || urlParams.get('id');
 
-  private loadOrders(): void {
-    const userId = this.authService.getCookie('userId');
-    if (!userId) {
-      this.error.set('No se encontró una sesión activa de usuario.');
+  // 2. También verificar por parámetro de ActivatedRoute por si acaso
+  const paramId = folioFromUrl || this.route.snapshot.paramMap.get('id') || this.route.snapshot.queryParamMap.get('folio');
+
+  if (paramId) {
+    this.searchId = paramId;
+    this.buscarOrden();
+  }
+}
+
+  buscarOrden(): void {
+    const trimmedId = this.searchId.trim();
+    if (!trimmedId) {
+      this.error.set('Por favor ingresa un número de folio válido.');
       return;
     }
 
     this.loading.set(true);
     this.error.set('');
+    this.order.set(null);
+    this.searched.set(true);
 
-    this.serviceOrderService.getClientOrders(userId).subscribe({
-      next: (orders) => {
-        this.orders.set(orders);
+    this.serviceOrderService.getPublicTracking(trimmedId).subscribe({
+      next: (data) => {
+        this.order.set(data);
         this.loading.set(false);
       },
       error: (err) => {
-        console.error('Error al cargar órdenes de cliente:', err);
-        this.error.set('Error al cargar la lista de órdenes. Inténtalo de nuevo.');
+        console.error('Error al consultar la orden:', err);
+        this.error.set('No se encontró ninguna orden con el folio proporcionado.');
         this.loading.set(false);
       }
     });
   }
 
-  // Normaliza el nombre del estado para su uso seguro en clases CSS
   sanitizeClass(estado: string): string {
     if (!estado) return 'recibido';
     return estado

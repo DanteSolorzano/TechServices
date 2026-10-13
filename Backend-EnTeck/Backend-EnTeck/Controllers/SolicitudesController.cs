@@ -39,6 +39,29 @@ public class SolicitudesController : ControllerBase
         return Ok(solicitudes);
     }
 
+    // GET: api/solicitudes/public/tracking/2 (US-015)
+    [HttpGet("public/tracking/{id:int}")]
+    public async Task<IActionResult> GetPublicTracking(int id)
+    {
+        var solicitud = await _context.SolicitudesServicio.FirstOrDefaultAsync(s => s.Id == id);
+        if (solicitud == null)
+        {
+            return NotFound(new { message = "Orden de servicio no encontrada" });
+        }
+
+        return Ok(new
+        {
+            id = solicitud.Id,
+            marca = solicitud.Marca,
+            modelo = solicitud.Modelo,
+            problema = solicitud.Problema,
+            estado = solicitud.Estado,
+            fechaRecibido = solicitud.FechaRecibido,
+            eta = solicitud.Eta,
+            nombreTecnico = solicitud.NombreTecnico
+        });
+    }
+
     // PUT/POST: api/solicitudes/{id}/asignar (US-011)
     [HttpPut("{id}/asignar")]
     [HttpPost("{id}/asignar")]
