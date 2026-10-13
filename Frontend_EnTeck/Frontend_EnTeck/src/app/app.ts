@@ -1,96 +1,83 @@
-import { Component, signal, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-
-// Componentes
-import { TrackingComponent } from './components/tracking/tracking.component';
-import { ServiceRequestComponent } from './components/service-request/service-request.component';
 import { AuthComponent } from './components/auth/auth.component';
 import { AdminComponent } from './components/admin/admin.component';
-import { AdminDashboardComponent } from './components/admin-dashboard/admin-dashboard.component';
-
-// Servicios
-import { AuthService } from './services/auth.service';
-import { ClientsService } from './services/clients.service';
-
-// Definimos las vistas posibles
-type ViewMode = 'auth' | 'home' | 'tracking' | 'service-order' | 'admin';
+import { TrackingComponent } from './components/tracking/tracking.component';
+import { ServiceRequestComponent } from './components/service-request/service-request.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
-    TrackingComponent,
-    ServiceRequestComponent,
     AuthComponent,
     AdminComponent,
-    AdminDashboardComponent
+    TrackingComponent,
+    ServiceRequestComponent
   ],
   templateUrl: './app.html',
-  styleUrl: './app.css',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrl: './app.css'
 })
 export class App implements OnInit {
-  private authService = inject(AuthService);
-  private clientsService = inject(ClientsService);
-  
-  // --- ESTADO DE NAVEGACIÓN ---
-  currentView = signal<ViewMode>('auth'); 
-  
-  // Client data for greeting
-  protected readonly currentClient = this.clientsService.currentClient;
-  protected readonly isAdmin = signal(false);
+  title = 'Frontend_EnTeck';
+
+  // Forzamos el estado inicial en 'tracking'
+  currentView = signal<string>('tracking');
+  currentClient = signal<any>(null);
 
   ngOnInit() {
-    this.authService.loadStoredUser();
+    const path = window.location.pathname.toLowerCase();
+    const savedUser = localStorage.getItem('user');
 
-    const userId = this.authService.getCookie('userId');
+    if (savedUser) {
+      try {
+        const user = JSON.parse(savedUser);
+        this.currentClient.set(user);
+      } catch (e) {
+        console.error('Error al cargar sesión', e);
+      }
+    }
 
-    if (userId) {
-      this.clientsService.getClient(userId).subscribe({
-        next: (client) => {
-          console.log('CLIENTE COMPLETO:', client);
-          this.clientsService.setCurrentClient(client);
-
-          if (client.esAdmin) {
-            this.isAdmin.set(true);
-            this.setView('admin');
-          } else {
-            this.isAdmin.set(false);
-            this.setView('home');
-          }
-        },
-        error: (error) => {
-          console.error('Error loading client data:', error);
-        }
-      });
+    // Regla estricta de Vistas
+    if (path.includes('admin') && this.currentClient()?.esAdmin) {
+      this.currentView.set('admin');
+    } else if (path.includes('auth')) {
+      this.currentView.set('auth');
+    } else {
+      // Prioridad pública: US-015 Tracking
+      this.currentView.set('tracking');
     }
   }
 
-  // --- FUNCIÓN DE NAVEGACIÓN ---
-  setView(view: ViewMode) {
+  setView(view: string) {
     this.currentView.set(view);
-    window.scrollTo(0, 0);
-  }
-
-  onLoginSuccess(): void {
-    window.location.reload();
-  }
-
-  goHome() {
-    this.setView('home');
+    window.history.pushState({}, '', `/${view}`);
   }
 
   isViewActive(view: string): boolean {
     return this.currentView() === view;
   }
 
+  onLoginSuccess() {
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      const user = JSON.parse(savedUser);
+      this.currentClient.set(user);
+
+      if (user.esAdmin || user.esAdmin === 1) {
+        this.setView('admin');
+      } else {
+        this.setView('home');
+      }
+    } else {
+      this.setView('admin');
+    }
+  }
+
   logout() {
-    this.authService.logout();
-    this.clientsService.logout();
-    this.isAdmin.set(false);
-    this.setView('auth');
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    this.currentClient.set(null);
+    this.setView('tracking');
   }
 }

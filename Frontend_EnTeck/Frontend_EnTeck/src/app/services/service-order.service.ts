@@ -66,4 +66,10 @@ export class ServiceOrderService {
       estado
     });
   }
+
+  // Método público para consulta por ID/folio sin requerir token (US-015)
+  getPublicTracking(id: number | string): Observable<any> {
+    // CORREGIDO: Se quitó la palabra "solicitudes" duplicada
+    return this.http.get(`${this.apiUrl}/public/tracking/${id}`);
+  }
 }
