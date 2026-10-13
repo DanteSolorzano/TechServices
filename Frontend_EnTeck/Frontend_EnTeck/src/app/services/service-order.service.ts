@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators'; // <-- Agregar esta importación
+import { map } from 'rxjs/operators';
 
 export interface ServiceOrder {
   id: number;
@@ -10,11 +10,13 @@ export interface ServiceOrder {
   problema: string;
   estado: string;
   fechaRecibido: string;
-  eta: string;
+  eta?: string;
   idCliente: number;
   idTecnico?: number;
   nombreTecnico?: string;
   fechaAsignacion?: string;
+  diagnostico?: string;
+  piezasUtilizadas?: string;
 }
 
 @Injectable({
@@ -25,7 +27,6 @@ export class ServiceOrderService {
   private apiUrl = 'http://localhost:5190/api/solicitudes';
 
   getClientOrders(clientId: string | number): Observable<ServiceOrder[]> {
-    // Consume la ruta que SÍ responde (/pendientes) y filtra las del cliente actual
     return this.http.get<ServiceOrder[]>(`${this.apiUrl}/pendientes`).pipe(
       map(ordenes => ordenes.filter(o => o.idCliente === Number(clientId)))
     );
@@ -49,6 +50,20 @@ export class ServiceOrderService {
   actualizarEstado(ordenId: number, nuevoEstado: string): Observable<any> {
     return this.http.put(`${this.apiUrl}/${ordenId}/estado`, {
       nuevoEstado
+    });
+  }
+
+  // --- Método para US-013: Registro de Diagnóstico y Piezas Utilizadas ---
+  registrarDiagnostico(
+    ordenId: number, 
+    diagnostico: string, 
+    piezasUtilizadas: string, 
+    estado?: string
+  ): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${ordenId}/diagnostico`, {
+      diagnostico,
+      piezasUtilizadas,
+      estado
     });
   }
 }
