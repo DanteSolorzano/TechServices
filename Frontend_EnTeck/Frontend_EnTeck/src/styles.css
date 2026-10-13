@@ -53,3 +53,32 @@ html, body {
   color: white;
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
+
+.admin-container .edit-user-list { display: grid; gap: 16px; }
+.admin-container .edit-user-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+.admin-container .edit-user-heading, .admin-container .edit-user-summary, .admin-container .edit-user-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.admin-container .edit-user-heading h2 { margin: 0 0 4px; color: #333; font-size: 18px; }
+.admin-container .edit-user-heading p, .admin-container .edit-user-summary span { margin: 0; color: #666; }
+.admin-container .role-badge { padding: 5px 10px; border-radius: 4px; background: #edf0f2; color: #4c5661; font-size: 12px; font-weight: 700; }
+.admin-container .role-badge.admin-role { background: #d9f5f7; color: #006b73; }
+.admin-container .role-badge.technician-role { background: #fff0cf; color: #805500; }
+.admin-container .edit-user-form { max-width: none; margin-top: 20px; padding: 20px 0 0; border-top: 1px solid #e5e7eb; border-radius: 0; box-shadow: none; }
+.admin-container .admin-toggle { display: flex; align-items: center; gap: 10px; margin: 4px 0 18px; }
+.admin-container .admin-toggle input { width: 18px; height: 18px; accent-color: #007bff; }
+.admin-container .admin-toggle strong { margin-left: auto; color: #007bff; }
+.admin-container .edit-user-actions { justify-content: flex-end; }
+.admin-container .cancel-btn, .admin-container .edit-btn { padding: 10px 16px; border: 1px solid #cbd5e1; border-radius: 6px; background: white; color: #334155; font-weight: 600; cursor: pointer; }
+.admin-container .edit-btn { padding: 8px 12px; }
+
+@media (max-width: 720px) {
+  .admin-container .sidebar { width: auto; height: auto; position: static; }
+  .admin-container .nav-menu { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+  .admin-container .main-content { padding: 24px 16px; }
+  .admin-container .form-row { grid-template-columns: 1fr; gap: 0; }
+  .admin-container .edit-user-heading, .admin-container .edit-user-summary { align-items: flex-start; flex-direction: column; }
+}
+
+.admin-container .nav-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

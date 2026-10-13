@@ -23,6 +23,6 @@ public class User
     [Column("direccion")]
     public string? Direccion { get; set; }
 
-    [Column("esAdmin")]
-    public bool EsAdmin { get; set; }
+    [Column("nivelPrivilegio")]
+    public int NivelPrivilegio { get; set; } = 2;
 }

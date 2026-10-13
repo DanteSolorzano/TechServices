@@ -9,7 +9,7 @@ export interface Client {
   telefono: string;
   correo: string;
   direccion: string;
-  esAdmin: boolean;
+  nivelPrivilegio: number;
 }
 
 @Injectable({

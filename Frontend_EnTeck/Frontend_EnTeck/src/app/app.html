@@ -5,7 +5,7 @@
 
 <!-- Show Admin Dashboard when admin is logged in -->
 @if (currentView() === 'admin') {
-  <app-admin></app-admin>
+  <app-admin [nivelPrivilegio]="currentClient()?.nivelPrivilegio ?? 0"></app-admin>
   <button 
     (click)="logout()"
     style="position: fixed; bottom: 20px; right: 20px; padding: 10px 20px; border: 1px solid #ff4444; color: #ff4444; background: white; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: bold; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">

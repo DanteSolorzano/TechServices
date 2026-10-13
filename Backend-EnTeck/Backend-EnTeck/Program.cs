@@ -55,7 +55,8 @@ app.MapPost("/api/auth/signup", async (SignupRequest request, ApplicationDbConte
         Telefono = request.Telefono,
         Correo = request.Correo,
         Contrasena = request.Contrasena,
-        Direccion = request.Direccion
+        Direccion = request.Direccion,
+        NivelPrivilegio = 2
     };
 
     db.Users.Add(user);
@@ -89,6 +90,53 @@ app.MapPost("/api/auth/login", async (SignupRequest request, ApplicationDbContex
 // CLIENTS ENDPOINTS
 // ----------------------------------------------------
 
+app.MapPost("/api/clientes", async (CreateClienteRequest request, ApplicationDbContext db) =>
+{
+    if (request.NivelPrivilegio is < 0 or > 2)
+    {
+        return Results.BadRequest(new { message = "NivelPrivilegio must be 0, 1, or 2" });
+    }
+
+    if (string.IsNullOrWhiteSpace(request.Nombre) ||
+        string.IsNullOrWhiteSpace(request.Telefono) ||
+        string.IsNullOrWhiteSpace(request.Correo) ||
+        string.IsNullOrWhiteSpace(request.Contrasena))
+    {
+        return Results.BadRequest(new { message = "Nombre, Telefono, Correo, and Contrasena are required" });
+    }
+
+    var correoEnUso = await db.Users.AnyAsync(u => u.Correo == request.Correo);
+    if (correoEnUso)
+    {
+        return Results.Conflict(new { message = "Email already registered" });
+    }
+
+    var cliente = new User
+    {
+        Nombre = request.Nombre.Trim(),
+        Telefono = request.Telefono.Trim(),
+        Correo = request.Correo.Trim(),
+        Contrasena = request.Contrasena,
+        Direccion = request.Direccion,
+        NivelPrivilegio = request.NivelPrivilegio
+    };
+
+    db.Users.Add(cliente);
+    await db.SaveChangesAsync();
+
+    return Results.Created($"/api/clientes/{cliente.Id}", new
+    {
+        id = cliente.Id,
+        nombre = cliente.Nombre,
+        telefono = cliente.Telefono,
+        correo = cliente.Correo,
+        direccion = cliente.Direccion,
+        nivelPrivilegio = cliente.NivelPrivilegio
+    });
+})
+.WithName("CreateCliente")
+.WithOpenApi();
+
 app.MapGet("/api/clientes", async (ApplicationDbContext db) =>
 {
     var clientes = await db.Users.Select(u => new
@@ -98,7 +146,7 @@ app.MapGet("/api/clientes", async (ApplicationDbContext db) =>
         telefono = u.Telefono,
         correo = u.Correo,
         direccion = u.Direccion,
-        esAdmin = u.EsAdmin
+        nivelPrivilegio = u.NivelPrivilegio
     }).ToListAsync();
 
     return Results.Ok(clientes);
@@ -115,7 +163,7 @@ app.MapGet("/api/clients", async (ApplicationDbContext db) =>
         telefono = u.Telefono,
         correo = u.Correo,
         direccion = u.Direccion,
-        esAdmin = u.EsAdmin
+        nivelPrivilegio = u.NivelPrivilegio
     }).ToListAsync();
 
     return Results.Ok(clientes);
@@ -135,7 +183,7 @@ app.MapGet("/api/clients/{id}", async (int id, ApplicationDbContext db) =>
         telefono = cliente.Telefono,
         correo = cliente.Correo,
         direccion = cliente.Direccion,
-        esAdmin = cliente.EsAdmin
+        nivelPrivilegio = cliente.NivelPrivilegio
     });
 })
 .WithName("GetClientInfo")
@@ -153,10 +201,62 @@ app.MapGet("/api/clientes/{id}", async (int id, ApplicationDbContext db) =>
         telefono = cliente.Telefono,
         correo = cliente.Correo,
         direccion = cliente.Direccion,
-        esAdmin = cliente.EsAdmin
+        nivelPrivilegio = cliente.NivelPrivilegio
     });
 })
 .WithName("GetClienteInfoEs")
+.WithOpenApi();
+
+app.MapPut("/api/clientes/{id}", async (int id, UpdateClienteRequest request, ApplicationDbContext db) =>
+{
+    if (request.NivelPrivilegio is < 0 or > 2)
+    {
+        return Results.BadRequest(new { message = "NivelPrivilegio must be 0, 1, or 2" });
+    }
+
+    if (string.IsNullOrWhiteSpace(request.Nombre) ||
+        string.IsNullOrWhiteSpace(request.Telefono) ||
+        string.IsNullOrWhiteSpace(request.Correo))
+    {
+        return Results.BadRequest(new { message = "Nombre, Telefono, and Correo are required" });
+    }
+
+    var cliente = await db.Users.FirstOrDefaultAsync(u => u.Id == id);
+    if (cliente == null)
+    {
+        return Results.NotFound(new { message = "Cliente not found" });
+    }
+
+    var correoEnUso = await db.Users.AnyAsync(u => u.Id != id && u.Correo == request.Correo);
+    if (correoEnUso)
+    {
+        return Results.Conflict(new { message = "Email already registered" });
+    }
+
+    cliente.Nombre = request.Nombre.Trim();
+    cliente.Telefono = request.Telefono.Trim();
+    cliente.Correo = request.Correo.Trim();
+    cliente.Direccion = request.Direccion;
+    cliente.NivelPrivilegio = request.NivelPrivilegio;
+
+    if (!string.IsNullOrWhiteSpace(request.Contrasena))
+    {
+        cliente.Contrasena = request.Contrasena;
+    }
+
+    await db.SaveChangesAsync();
+
+    return Results.Ok(new
+    {
+        id = cliente.Id,
+        nombre = cliente.Nombre,
+        telefono = cliente.Telefono,
+        correo = cliente.Correo,
+        direccion = cliente.Direccion,
+        nivelPrivilegio = cliente.NivelPrivilegio
+    });
+})
+.WithName("UpdateCliente")
 .WithOpenApi();
 
 app.MapDelete("/api/clients/{id}", async (int id, ApplicationDbContext db) =>
@@ -358,3 +458,19 @@ record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 }
 
 record AsignarTecnicoRequest(int IdTecnico, string NombreTecnico);
+
+record UpdateClienteRequest(
+    string Nombre,
+    string Telefono,
+    string Correo,
+    string? Direccion,
+    int NivelPrivilegio,
+    string? Contrasena);
+
+record CreateClienteRequest(
+    string Nombre,
+    string Telefono,
+    string Correo,
+    string Contrasena,
+    string? Direccion,
+    int NivelPrivilegio);

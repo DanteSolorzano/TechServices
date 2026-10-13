@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal, inject, OnInit, ChangeDetectionStrategy, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -9,7 +9,7 @@ interface User {
   correo: string;
   telefono: string;
   direccion: string;
-  esAdmin?: boolean;
+  nivelPrivilegio: number;
 }
 
 interface ServiceOrder {
@@ -47,12 +47,21 @@ interface ClientMap {
           <button 
             (click)="setActiveTab('add-user')"
             [class.active]="activeTab() === 'add-user'"
+            [disabled]="nivelPrivilegio === 1"
             class="nav-btn">
             <span>➕</span> Agregar Usuario
           </button>
           <button 
+            (click)="setActiveTab('edit-user')"
+            [class.active]="activeTab() === 'edit-user'"
+            [disabled]="nivelPrivilegio === 1"
+            class="nav-btn">
+            <span>✏️</span> Modificar Usuarios
+          </button>
+          <button 
             (click)="setActiveTab('delete-user')"
             [class.active]="activeTab() === 'delete-user'"
+            [disabled]="nivelPrivilegio === 1"
             class="nav-btn">
             <span>🗑️</span> Eliminar Usuario
           </button>
@@ -107,8 +116,94 @@ interface ClientMap {
                     <input type="text" [(ngModel)]="addUserForm.direccion" name="direccion" required placeholder="Calle Principal 123">
                   </div>
                 </div>
+                <div class="form-group">
+                  <label for="new-user-privilege">Nivel de privilegio</label>
+                  <select id="new-user-privilege" [(ngModel)]="addUserForm.nivelPrivilegio" name="nivelPrivilegio" required>
+                    <option [ngValue]="0">Administrador</option>
+                    <option [ngValue]="1">Técnico</option>
+                    <option [ngValue]="2">Cliente</option>
+                  </select>
+                </div>
                 <button type="submit" class="submit-btn" [disabled]="!isAddUserFormValid()">Crear Usuario</button>
               </form>
+            }
+          </div>
+        }
+
+        @if (activeTab() === 'edit-user') {
+          <div class="section">
+            <h1>Modificar Usuarios</h1>
+            @if (editUserLoading()) {
+              <div class="loading"><span class="spinner"></span> Cargando usuarios...</div>
+            } @else if (editUserError()) {
+              <div class="error-message">
+                <p>{{ editUserError() }}</p>
+                <button (click)="editUserError.set('')">Cerrar</button>
+              </div>
+            } @else if (users().length === 0) {
+              <div class="no-data"><p>No hay usuarios en la base de datos</p></div>
+            } @else {
+              <div class="edit-user-list">
+                @for (user of users(); track user.id) {
+                  <article class="edit-user-card">
+                    <div class="edit-user-heading">
+                      <div>
+                        <h2>{{ user.nombre }}</h2>
+                        <p>{{ user.correo }}</p>
+                      </div>
+                      <span class="role-badge" [class.admin-role]="user.nivelPrivilegio === 0" [class.technician-role]="user.nivelPrivilegio === 1">
+                        {{ getPrivilegeLabel(user.nivelPrivilegio) }}
+                      </span>
+                    </div>
+                    @if (editingUserId() === user.id) {
+                      <form class="form edit-user-form" (ngSubmit)="saveUserChanges(user.id)">
+                        <div class="form-group">
+                          <label [for]="'name-' + user.id">Nombre</label>
+                          <input [id]="'name-' + user.id" [(ngModel)]="editUserForm.nombre" name="nombre" required>
+                        </div>
+                        <div class="form-row">
+                          <div class="form-group">
+                            <label [for]="'email-' + user.id">Correo</label>
+                            <input [id]="'email-' + user.id" type="email" [(ngModel)]="editUserForm.correo" name="correo" required>
+                          </div>
+                          <div class="form-group">
+                            <label [for]="'phone-' + user.id">Teléfono</label>
+                            <input [id]="'phone-' + user.id" type="tel" [(ngModel)]="editUserForm.telefono" name="telefono" required>
+                          </div>
+                        </div>
+                        <div class="form-row">
+                          <div class="form-group">
+                            <label [for]="'address-' + user.id">Dirección</label>
+                            <input [id]="'address-' + user.id" [(ngModel)]="editUserForm.direccion" name="direccion">
+                          </div>
+                          <div class="form-group">
+                            <label [for]="'password-' + user.id">Nueva contraseña</label>
+                            <input [id]="'password-' + user.id" type="password" [(ngModel)]="editUserForm.contrasena" name="contrasena" autocomplete="new-password" placeholder="Dejar vacía para conservarla">
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label [for]="'privilege-' + user.id">Nivel de privilegio</label>
+                          <select [id]="'privilege-' + user.id" [(ngModel)]="editUserForm.nivelPrivilegio" name="nivelPrivilegio" required>
+                            <option [ngValue]="0">Administrador</option>
+                            <option [ngValue]="1">Técnico</option>
+                            <option [ngValue]="2">Cliente</option>
+                          </select>
+                        </div>
+                        <div class="edit-user-actions">
+                          <button type="button" class="cancel-btn" (click)="cancelUserEdit()">Cancelar</button>
+                          <button type="submit" class="submit-btn" [disabled]="savingUser()">{{ savingUser() ? 'Guardando...' : 'Guardar cambios' }}</button>
+                        </div>
+                      </form>
+                    } @else {
+                      <div class="edit-user-summary">
+                        <span>Teléfono: {{ user.telefono }}</span>
+                        <span>Dirección: {{ user.direccion || 'Sin dirección' }}</span>
+                        <button type="button" class="edit-btn" (click)="startUserEdit(user)">Editar usuario</button>
+                      </div>
+                    }
+                  </article>
+                }
+              </div>
             }
           </div>
         }
@@ -268,7 +363,7 @@ interface ClientMap {
     .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
     label { font-weight: 600; color: #444; font-size: 14px; }
-    input { padding: 12px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9; }
+    input, select { padding: 12px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9; }
     .submit-btn { padding: 12px 30px; background: #007bff; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
     .submit-btn:disabled { background: #ccc; cursor: not-allowed; }
     .loading, .no-data { text-align: center; padding: 40px; background: white; border-radius: 12px; color: #007bff; font-weight: bold; }
@@ -296,9 +391,11 @@ interface ClientMap {
 export class AdminComponent implements OnInit {
   private httpClient = inject(HttpClient);
 
-  activeTab = signal<'add-user' | 'delete-user' | 'orders'>('add-user');
+  @Input() nivelPrivilegio = 0;
 
-  addUserForm = { nombre: '', correo: '', contrasena: '', telefono: '', direccion: '' };
+  activeTab = signal<'add-user' | 'edit-user' | 'delete-user' | 'orders'>('add-user');
+
+  addUserForm = { nombre: '', correo: '', contrasena: '', telefono: '', direccion: '', nivelPrivilegio: 2 };
   addUserLoading = signal(false);
   addUserError = signal('');
   addUserSuccess = signal(false);
@@ -306,6 +403,11 @@ export class AdminComponent implements OnInit {
   users = signal<User[]>([]);
   deleteUserLoading = signal(false);
   deleteUserError = signal('');
+  editUserLoading = signal(false);
+  editUserError = signal('');
+  editingUserId = signal<number | null>(null);
+  savingUser = signal(false);
+  editUserForm = { nombre: '', correo: '', telefono: '', direccion: '', contrasena: '', nivelPrivilegio: 2 };
 
   orders = signal<ServiceOrder[]>([]);
   ordersLoading = signal(false);
@@ -313,13 +415,18 @@ export class AdminComponent implements OnInit {
   clientsMap = signal<ClientMap>({});
 
   ngOnInit(): void {
+    if (this.nivelPrivilegio === 1) {
+      this.activeTab.set('orders');
+    }
     this.loadUsers();
     this.loadOrders();
   }
 
-  setActiveTab(tab: 'add-user' | 'delete-user' | 'orders'): void {
+  setActiveTab(tab: 'add-user' | 'edit-user' | 'delete-user' | 'orders'): void {
+    if (this.nivelPrivilegio === 1 && tab !== 'orders') return;
     this.activeTab.set(tab);
-    if (tab === 'delete-user') this.loadUsers();
+    if (tab === 'edit-user') this.loadUsersForEditing();
+    else if (tab === 'delete-user') this.loadUsers();
     else if (tab === 'orders') {
       this.loadUsers();
       this.loadOrders();
@@ -327,21 +434,26 @@ export class AdminComponent implements OnInit {
   }
 
   getTecnicosList(): User[] {
-    const allUsers = this.users();
-    const admins = allUsers.filter(u => u.esAdmin === true);
+    const technicians = this.users().filter(user => user.nivelPrivilegio === 1);
     
     const uniqueAdmins: User[] = [];
     const seenNames = new Set<string>();
 
-    for (const user of (admins.length > 0 ? admins : allUsers)) {
+    for (const user of technicians) {
       const lowerName = user.nombre.trim().toLowerCase();
-      if (!seenNames.has(lowerName) && !user.nombre.includes('Cliente') && !user.nombre.includes('Técnico Gael')) {
+      if (!seenNames.has(lowerName)) {
         seenNames.add(lowerName);
         uniqueAdmins.push(user);
       }
     }
 
     return uniqueAdmins;
+  }
+
+  getPrivilegeLabel(level: number): string {
+    if (level === 0) return 'Administrador';
+    if (level === 1) return 'Técnico';
+    return 'Cliente';
   }
 
   getClientName(clientId: number): string {
@@ -375,21 +487,23 @@ export class AdminComponent implements OnInit {
     this.addUserLoading.set(true);
     this.addUserError.set('');
 
-    this.httpClient.post('http://localhost:5190/api/auth/signup', this.addUserForm).subscribe({
+    this.httpClient.post('http://localhost:5190/api/clientes', this.addUserForm).subscribe({
       next: () => {
         this.addUserLoading.set(false);
         this.addUserSuccess.set(true);
       },
       error: (err) => {
         console.error(err);
-        this.addUserError.set('Error al crear el usuario.');
+        this.addUserError.set(err.status === 409
+          ? 'Ese correo ya está registrado en otra cuenta.'
+          : 'Error al crear el usuario. Verifica los datos e intenta de nuevo.');
         this.addUserLoading.set(false);
       }
     });
   }
 
   resetAddUserForm(): void {
-    this.addUserForm = { nombre: '', correo: '', contrasena: '', telefono: '', direccion: '' };
+    this.addUserForm = { nombre: '', correo: '', contrasena: '', telefono: '', direccion: '', nivelPrivilegio: 2 };
     this.addUserSuccess.set(false);
   }
 
@@ -418,6 +532,61 @@ export class AdminComponent implements OnInit {
   }
 
   clearDeleteUserError(): void { this.deleteUserError.set(''); }
+
+  private loadUsersForEditing(): void {
+    this.editUserLoading.set(true);
+    this.editUserError.set('');
+    this.httpClient.get<User[]>('http://localhost:5190/api/clientes').subscribe({
+      next: (data) => {
+        this.users.set(data);
+        this.editUserLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Error al cargar usuarios para edición:', err);
+        this.editUserError.set('No se pudieron cargar los usuarios. Intenta de nuevo.');
+        this.editUserLoading.set(false);
+      }
+    });
+  }
+
+  startUserEdit(user: User): void {
+    this.editUserForm = {
+      nombre: user.nombre,
+      correo: user.correo,
+      telefono: user.telefono,
+      direccion: user.direccion ?? '',
+      contrasena: '',
+      nivelPrivilegio: user.nivelPrivilegio
+    };
+    this.editUserError.set('');
+    this.editingUserId.set(user.id);
+  }
+
+  cancelUserEdit(): void {
+    this.editingUserId.set(null);
+    this.editUserError.set('');
+  }
+
+  saveUserChanges(userId: number): void {
+    if (this.savingUser()) return;
+    this.savingUser.set(true);
+    this.editUserError.set('');
+
+    this.httpClient.put<User>(`http://localhost:5190/api/clientes/${userId}`, this.editUserForm).subscribe({
+      next: (updatedUser) => {
+        this.users.update(currentUsers => currentUsers.map(user => user.id === userId ? updatedUser : user));
+        this.editingUserId.set(null);
+        this.savingUser.set(false);
+      },
+      error: (err) => {
+        console.error('Error al actualizar usuario:', err);
+        this.editUserError.set(err.status === 409
+          ? 'Ese correo ya está registrado en otra cuenta.'
+          : 'No se pudo actualizar el usuario. Verifica los datos e intenta de nuevo.');
+        this.savingUser.set(false);
+      }
+    });
+  }
 
   private loadOrders(): void {
     this.ordersLoading.set(true);

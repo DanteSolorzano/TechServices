@@ -54,7 +54,7 @@ export class App implements OnInit {
           console.log('CLIENTE COMPLETO:', client);
           this.clientsService.setCurrentClient(client);
 
-          if (client.esAdmin) {
+          if (client.nivelPrivilegio === 0 || client.nivelPrivilegio === 1) {
             this.isAdmin.set(true);
             this.setView('admin');
           } else {
