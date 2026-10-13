@@ -39,7 +39,7 @@ public class SolicitudesController : ControllerBase
         return Ok(solicitudes);
     }
 
-    // PUT/POST: api/solicitudes/{id}/asignar
+    // PUT/POST: api/solicitudes/{id}/asignar (US-011)
     [HttpPut("{id}/asignar")]
     [HttpPost("{id}/asignar")]
     public async Task<IActionResult> AsignarTecnico(int id, [FromBody] ActualizarOrdenDto dto)
@@ -77,6 +77,28 @@ public class SolicitudesController : ControllerBase
         await _context.SaveChangesAsync();
         return Ok(new { mensaje = "Orden actualizada exitosamente.", orden });
     }
+
+    // PUT: api/solicitudes/{id}/diagnostico (US-013)
+    [HttpPut("{id}/diagnostico")]
+    public async Task<IActionResult> RegistrarDiagnostico(int id, [FromBody] RegistrarDiagnosticoDto dto)
+    {
+        var orden = await _context.SolicitudesServicio.FindAsync(id);
+        if (orden == null)
+        {
+            return NotFound(new { mensaje = "La orden de servicio no existe." });
+        }
+
+        orden.Diagnostico = dto.Diagnostico;
+        orden.PiezasUtilizadas = dto.PiezasUtilizadas;
+
+        if (!string.IsNullOrWhiteSpace(dto.Estado))
+        {
+            orden.Estado = dto.Estado;
+        }
+
+        await _context.SaveChangesAsync();
+        return Ok(new { mensaje = "Diagnóstico y piezas registradas correctamente.", orden });
+    }
 }
 
 public class ActualizarOrdenDto
@@ -85,4 +107,11 @@ public class ActualizarOrdenDto
     public string? NombreTecnico { get; set; }
     public string? Estado { get; set; }
     public string? Eta { get; set; }
+}
+
+public class RegistrarDiagnosticoDto
+{
+    public string Diagnostico { get; set; } = string.Empty;
+    public string PiezasUtilizadas { get; set; } = string.Empty;
+    public string? Estado { get; set; }
 }
