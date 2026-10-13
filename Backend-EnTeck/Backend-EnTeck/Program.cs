@@ -39,8 +39,6 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.MapControllers();
-app.UseHttpsRedirection();
-app.UseCors("AllowAll");
 
 // ----------------------------------------------------
 // AUTH ENDPOINTS
@@ -203,30 +201,6 @@ app.MapDelete("/api/clientes/{id}", async (int id, ApplicationDbContext db) =>
 // SERVICE ORDERS ENDPOINTS
 // ----------------------------------------------------
 
-app.MapGet("/api/solicitudes/pendientes", async (ApplicationDbContext db) =>
-{
-    var solicitudes = await db.SolicitudesServicio.ToListAsync();
-    
-    var resultado = solicitudes.Select(s => new 
-    { 
-        id = s.Id, 
-        marca = s.Marca,
-        modelo = s.Modelo,
-        problema = s.Problema,
-        estado = s.Estado,
-        fechaRecibido = s.FechaRecibido,
-        eta = s.Eta,
-        idCliente = s.IdCliente,
-        idTecnico = s.IdTecnico,
-        nombreTecnico = s.NombreTecnico,
-        fechaAsignacion = s.FechaAsignacion
-    }).ToList();
-
-    return Results.Ok(resultado);
-})
-.WithName("GetPendingServiceOrders")
-.WithOpenApi();
-
 app.MapGet("/api/service-order", async (ApplicationDbContext db) =>
 {
     var solicitudes = await db.SolicitudesServicio.ToListAsync();
@@ -250,26 +224,30 @@ app.MapGet("/api/service-order", async (ApplicationDbContext db) =>
 })
 .WithName("GetAllServiceOrders")
 .WithOpenApi();
-
-// Endpoint US-011: Asignación de Técnico
-app.MapPut("/api/solicitudes/{id}/asignar", async (int id, AsignarTecnicoRequest request, ApplicationDbContext db) =>
+app.MapGet("/api/service-order/{id}", async (int id, ApplicationDbContext db) =>
 {
-    var solicitud = await db.SolicitudesServicio.FindAsync(id);
-    if (solicitud == null)
+    var solicitud = await db.SolicitudesServicio.FirstOrDefaultAsync(s => s.Id == id);
+    if (solicitud == null) 
     {
-        return Results.NotFound(new { message = "Solicitud no encontrada" });
+        return Results.NotFound(new { message = "Orden no encontrada" });
     }
 
-    solicitud.IdTecnico = request.IdTecnico;
-    solicitud.NombreTecnico = request.NombreTecnico;
-    solicitud.FechaAsignacion = DateTime.Now;
-    solicitud.Estado = "En Proceso";
-
-    await db.SaveChangesAsync();
-
-    return Results.Ok(new { message = "Técnico asignado exitosamente", solicitud });
+    return Results.Ok(new 
+    { 
+        id = solicitud.Id, 
+        marca = solicitud.Marca,
+        modelo = solicitud.Modelo,
+        problema = solicitud.Problema,
+        estado = solicitud.Estado,
+        fechaRecibido = solicitud.FechaRecibido,
+        eta = solicitud.Eta,
+        idCliente = solicitud.IdCliente,
+        idTecnico = solicitud.IdTecnico,
+        nombreTecnico = solicitud.NombreTecnico,
+        fechaAsignacion = solicitud.FechaAsignacion
+    });
 })
-.WithName("AsignarTecnico")
+.WithName("GetServiceOrderById")
 .WithOpenApi();
 
 app.MapGet("/api/service-order/client/{idCliente}", async (int idCliente, ApplicationDbContext db) =>
@@ -369,5 +347,3 @@ record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
-
-record AsignarTecnicoRequest(int IdTecnico, string NombreTecnico);
