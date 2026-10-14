@@ -8,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddOpenApi();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -21,10 +22,10 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Registrar HttpClient y WhatsAppService (US-014)
+// Registrar HttpClient y WhatsAppService (US-014 / US-015)
 builder.Services.AddHttpClient<IWhatsAppService, WhatsAppService>();
 
-// Registrar controladores para rutas atribuidas ([ApiController])
+// Registrar controladores para rutas con atributos ([ApiController])
 builder.Services.AddControllers();
 
 var app = builder.Build();
@@ -33,7 +34,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    app.MapScalarApiReference();
+    app.MapScalarApiReference(); // Documentación interactiva de .NET 9
 }
 
 app.UseHttpsRedirection();
@@ -224,6 +225,7 @@ app.MapGet("/api/service-order", async (ApplicationDbContext db) =>
 })
 .WithName("GetAllServiceOrders")
 .WithOpenApi();
+
 app.MapGet("/api/service-order/{id}", async (int id, ApplicationDbContext db) =>
 {
     var solicitud = await db.SolicitudesServicio.FirstOrDefaultAsync(s => s.Id == id);

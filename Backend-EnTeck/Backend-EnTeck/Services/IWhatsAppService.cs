@@ -1,6 +1,9 @@
-namespace Backend_EnTeck.Services;
+using Backend_EnTeck.Models;
 
-public interface IWhatsAppService
+namespace Backend_EnTeck.Services
 {
-    Task<bool> EnviarMensajeAsync(string numeroTelefono, string mensaje);
+    public interface IWhatsAppService
+    {
+        Task<bool> EnviarNotificacionWebhookAsync(NotificacionOrdenDto dto);
+    }
 }
