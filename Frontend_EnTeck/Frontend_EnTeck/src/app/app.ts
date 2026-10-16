@@ -1,9 +1,11 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthComponent } from './components/auth/auth.component';
 import { AdminComponent } from './components/admin/admin.component';
 import { TrackingComponent } from './components/tracking/tracking.component';
 import { ServiceRequestComponent } from './components/service-request/service-request.component';
+import { TecnicoDashboardComponent } from './components/tecnico-dashboard/tecnico-dashboard.component';
+import { AuthService, AuthResponse } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -13,7 +15,8 @@ import { ServiceRequestComponent } from './components/service-request/service-re
     AuthComponent,
     AdminComponent,
     TrackingComponent,
-    ServiceRequestComponent
+    ServiceRequestComponent,
+    TecnicoDashboardComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.css'
@@ -21,32 +24,54 @@ import { ServiceRequestComponent } from './components/service-request/service-re
 export class App implements OnInit {
   title = 'Frontend_EnTeck';
 
-  // Forzamos el estado inicial en 'tracking'
+  private authService = inject(AuthService);
+
   currentView = signal<string>('tracking');
-  currentClient = signal<any>(null);
+  currentClient = signal<AuthResponse | null>(null);
 
   ngOnInit() {
+    this.evaluarYcargarSesion();
+  }
+
+  evaluarYcargarSesion() {
     const path = window.location.pathname.toLowerCase();
-    const savedUser = localStorage.getItem('user');
+    
+    // Cargar sesión mediante el servicio centralizado
+    this.authService.loadStoredUser();
+    const user = this.authService.getCurrentUser();
 
-    if (savedUser) {
-      try {
-        const user = JSON.parse(savedUser);
-        this.currentClient.set(user);
-      } catch (e) {
-        console.error('Error al cargar sesión', e);
+    if (!user) {
+      this.currentClient.set(null);
+      if (path.includes('auth')) {
+        this.currentView.set('auth');
+      } else {
+        this.currentView.set('tracking');
       }
+      return;
     }
 
-    // Regla estricta de Vistas
-    if (path.includes('admin') && this.currentClient()?.esAdmin) {
+    this.currentClient.set(user);
+
+    // EVALUACIÓN DE ROLES BASADA EXCLUSIVAMENTE EN EL CONTRATO DE BD
+    const esAdmin = user.esAdmin === true || Number(user.esAdmin) === 1;
+
+    if (esAdmin) {
       this.currentView.set('admin');
-    } else if (path.includes('auth')) {
-      this.currentView.set('auth');
+    } else if (this.isTecnico(user)) {
+      this.currentView.set('tecnico');
     } else {
-      // Prioridad pública: US-015 Tracking
-      this.currentView.set('tracking');
+      this.currentView.set('home');
     }
+  }
+
+  private isTecnico(user: AuthResponse): boolean {
+    if (!user) return false;
+
+    const esAdmin = user.esAdmin === true || Number(user.esAdmin) === 1;
+    if (esAdmin) return false;
+
+    const correo = (user.correo || '').toLowerCase().trim();
+    return correo.includes('tecnico');
   }
 
   setView(view: string) {
@@ -59,24 +84,11 @@ export class App implements OnInit {
   }
 
   onLoginSuccess() {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      const user = JSON.parse(savedUser);
-      this.currentClient.set(user);
-
-      if (user.esAdmin || user.esAdmin === 1) {
-        this.setView('admin');
-      } else {
-        this.setView('home');
-      }
-    } else {
-      this.setView('admin');
-    }
+    this.evaluarYcargarSesion();
   }
 
   logout() {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
+    this.authService.logout();
     this.currentClient.set(null);
     this.setView('tracking');
   }

@@ -1,7 +1,7 @@
 import { Component, signal, inject, OnInit, ChangeDetectionStrategy, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AuthService, SignupRequest, LoginRequest } from '../../services/auth.service';
+import { AuthService, SignupRequest, LoginRequest, AuthResponse } from '../../services/auth.service';
 
 @Component({
   selector: 'app-auth',
@@ -10,7 +10,6 @@ import { AuthService, SignupRequest, LoginRequest } from '../../services/auth.se
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="auth-container">
-      <!-- LOGIN / REGISTRO FORM -->
       <div class="auth-card fade-in">
         <h2>{{ isRegistering() ? 'Crear Cuenta' : 'Iniciar Sesión' }}</h2>
         <p class="subtitle">
@@ -22,8 +21,6 @@ import { AuthService, SignupRequest, LoginRequest } from '../../services/auth.se
         }
 
         <form (ngSubmit)="onSubmit()">
-          
-          <!-- Campos Extra solo para Registro -->
           @if (isRegistering()) {
             <div class="form-group slide-down">
               <label>Nombre Completo</label>
@@ -71,31 +68,20 @@ import { AuthService, SignupRequest, LoginRequest } from '../../services/auth.se
   `,
   styles: [`
     .auth-container { display: flex; justify-content: center; padding: 40px 20px; background: #f4f7f6; min-height: 100vh; }
-    
-    /* Tarjeta */
     .auth-card { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); width: 100%; max-width: 450px; }
-
     h2 { margin: 0 0 10px 0; color: #333; }
     .subtitle { color: #666; margin-bottom: 30px; font-size: 14px; }
-
-    /* Error Message */
     .error-message { background: #ffebee; color: #c62828; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; border-left: 4px solid #c62828; }
-
-    /* Formulario */
     .form-group { margin-bottom: 15px; }
     label { display: block; font-weight: 600; font-size: 13px; color: #555; margin-bottom: 5px; }
     input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; transition: border 0.3s; }
     input:focus { border-color: #007bff; outline: none; }
     input:disabled { background-color: #f5f5f5; cursor: not-allowed; }
-
     .submit-btn { width: 100%; padding: 14px; background: #1a1a1a; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 10px; transition: background 0.3s; }
     .submit-btn:hover:not(:disabled) { background: #333; }
     .submit-btn:disabled { background: #999; cursor: not-allowed; }
-
     .toggle-link { text-align: center; margin-top: 20px; font-size: 14px; }
     .toggle-link a { color: #007bff; font-weight: bold; cursor: pointer; text-decoration: underline; }
-
-    /* Animaciones */
     .fade-in { animation: fadeIn 0.5s ease; }
     .slide-down { animation: slideDown 0.3s ease; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -105,15 +91,12 @@ import { AuthService, SignupRequest, LoginRequest } from '../../services/auth.se
 export class AuthComponent implements OnInit {
   private authService = inject(AuthService);
 
-  // Output event to notify parent when user logs in
   loginSuccess = output<void>();
 
-  // Estados de vista
   isRegistering = signal(false);
   isLoading = signal(false);
   errorMessage = signal('');
 
-  // Datos de formularios
   authData = { email: '', password: '' };
   registerData = { name: '', phone: '', address: '' };
 
@@ -149,7 +132,7 @@ export class AuthComponent implements OnInit {
     };
 
     this.authService.signup(signupData).subscribe({
-      next: (response) => {
+      next: (response: AuthResponse) => {
         this.authService.setCurrentUser(response);
         this.isLoading.set(false);
         this.isRegistering.set(false);
@@ -171,13 +154,8 @@ export class AuthComponent implements OnInit {
     };
 
     this.authService.login(loginData).subscribe({
-      next: (response) => {
-        // Fetch the user data after login
-        this.authService.setCurrentUser({
-          id: response.id,
-          correo: this.authData.email,
-          nombre: 'Cliente EnTeck'
-        });
+      next: (response: AuthResponse) => {
+        this.authService.setCurrentUser(response);
         this.isLoading.set(false);
         this.authData = { email: '', password: '' };
         this.loginSuccess.emit();
