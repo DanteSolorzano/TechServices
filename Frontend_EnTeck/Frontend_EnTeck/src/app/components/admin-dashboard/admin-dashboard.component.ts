@@ -89,14 +89,13 @@ export class AdminDashboardComponent implements OnInit {
   filtroFechaInicio = signal<string>('');
   filtroFechaFin = signal<string>('');
 
-  // Formulario para registrar nuevo usuario con soporte de 3 roles explícitos
   nuevoUsuario = {
     nombre: '',
     correo: '',
     contrasena: '',
     telefono: '',
     direccion: '',
-    rolSeleccionado: 'cliente' // Opciones posibles: 'admin' | 'tecnico' | 'cliente'
+    rolSeleccionado: 'cliente'
   };
 
   isEditing = signal(false);
@@ -118,25 +117,29 @@ export class AdminDashboardComponent implements OnInit {
       next: (users) => {
         if (users) {
           this.usuarios.set(users);
-          // Mapeamos únicamente los usuarios que pueden ser técnicos
-          const mappedTechs = users
-            .filter(u => !u.esAdmin && (u.rol === 'tecnico' || (u.correo && u.correo.toLowerCase().includes('tecnico')) || true))
-            .map(u => ({ id: u.id, nombre: u.nombre }));
-          this.tecnicos.set(mappedTechs);
+          
+          // FILTRO ESTRICTO: Solo incluir usuarios registrados con rol 'tecnico' o correo técnico
+          const soloTecnicos = users.filter(u => {
+            const correo = (u.correo || '').toLowerCase().trim();
+            const rol = (u.rol || '').toLowerCase().trim();
+            return !u.esAdmin && (rol === 'tecnico' || correo.includes('tecnico'));
+          }).map(u => ({ id: u.id, nombre: u.nombre }));
+
+          this.tecnicos.set(soloTecnicos);
         }
       },
       error: (err) => console.error('Error al cargar clientes/técnicos:', err)
     });
   }
 
-  // Método auxiliar para renderizar badge según los 3 roles
   obtenerEtiquetaRol(user: User): { texto: string; clase: string } {
     if (user.esAdmin || user.rol === 'admin') {
       return { texto: '🛡️ Administrador', clase: 'in-stock' };
     }
     
-    const correo = (user.correo || '').toLowerCase();
-    if (user.rol === 'tecnico' || correo.includes('tecnico')) {
+    const correo = (user.correo || '').toLowerCase().trim();
+    const rol = (user.rol || '').toLowerCase().trim();
+    if (rol === 'tecnico' || correo.includes('tecnico')) {
       return { texto: '🛠️ Técnico', clase: 'tech-stock' };
     }
 
