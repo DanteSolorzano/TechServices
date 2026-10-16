@@ -16,64 +16,70 @@ public class SolicitudesController : ControllerBase
         _context = context;
     }
 
-    // ==========================================
-    // US-011: REPARTO Y ASIGNACIÓN DE ÓRDENES
-    // ==========================================
-
     // GET: api/solicitudes/pendientes
-    // Obtener las solicitudes sin técnico asignado
     [HttpGet("pendientes")]
     public async Task<IActionResult> GetPendientes()
     {
-        var pendientes = await _context.SolicitudesServicio
-            .Where(s => s.IdTecnico == null)
+        var solicitudes = await _context.SolicitudesServicio
+            .OrderByDescending(s => s.Id)
             .ToListAsync();
-        return Ok(pendientes);
+            
+        return Ok(solicitudes);
     }
 
-    // POST: api/solicitudes/{id}/asignar
-    // Asignar un técnico a la orden de trabajo
-    [HttpPost("{id}/asignar")]
-    public async Task<IActionResult> AsignarTecnico(int id, [FromBody] AsignarTecnicoDto dto)
+    // GET: api/solicitudes/cliente/2
+    [HttpGet("cliente/{clienteId}")]
+    public async Task<IActionResult> GetPorCliente(int clienteId)
     {
-        var orden = await _context.SolicitudesServicio.FindAsync(id);
-        if (orden == null)
-        {
-            return NotFound(new { mensaje = "La orden de servicio no existe." });
-        }
+        var solicitudes = await _context.SolicitudesServicio
+            .Where(s => s.IdCliente == clienteId)
+            .OrderByDescending(s => s.Id)
+            .ToListAsync();
 
-        orden.IdTecnico = dto.IdTecnico;
-        orden.NombreTecnico = dto.NombreTecnico;
-        orden.FechaAsignacion = DateTime.Now;
-        
-        if (string.IsNullOrEmpty(orden.Estado) || orden.Estado == "Recibido")
-        {
-            orden.Estado = "En Diagnóstico";
-        }
-
-        await _context.SaveChangesAsync();
-        return Ok(new { mensaje = "Técnico asignado exitosamente.", orden });
+        return Ok(solicitudes);
     }
 
-    // ==========================================
-    // US-012: PANTALLA DE TRABAJO PARA TÉCNICOS
-    // ==========================================
-
-    // GET: api/solicitudes/tecnico/{tecnicoId}
-    // Obtener únicamente las órdenes asignadas a un técnico específico
+    // GET: api/solicitudes/tecnico/13 (US-012 / US-013)
+    // GET: api/solicitudes/tecnico/13
     [HttpGet("tecnico/{tecnicoId}")]
-    public async Task<IActionResult> GetOrdenesPorTecnico(int tecnicoId)
+    public async Task<IActionResult> GetPorTecnico(int tecnicoId)
     {
-        var ordenes = await _context.SolicitudesServicio
-            .Where(s => s.IdTecnico == tecnicoId)
+        // Trae las órdenes asignadas a este técnico O las órdenes sin técnico asignado/pendientes
+        var solicitudes = await _context.SolicitudesServicio
+            .Where(s => s.IdTecnico == tecnicoId || s.IdTecnico == null || s.IdTecnico == 0 || string.IsNullOrEmpty(s.NombreTecnico))
+            .OrderByDescending(s => s.Id)
             .ToListAsync();
-        return Ok(ordenes);
+
+        return Ok(solicitudes);
     }
 
-    // PUT: api/solicitudes/{id}/estado
-    // Actualizar el avance/estado de la reparación (En Diagnóstico -> Listo)
-    [HttpPut("{id}/estado")]
-    public async Task<IActionResult> ActualizarEstado(int id, [FromBody] CambiarEstadoDto dto)
+    // GET: api/solicitudes/public/tracking/2 (US-015)
+    [HttpGet("public/tracking/{id:int}")]
+    public async Task<IActionResult> GetPublicTracking(int id)
+    {
+        var solicitud = await _context.SolicitudesServicio.FirstOrDefaultAsync(s => s.Id == id);
+        if (solicitud == null)
+        {
+            return NotFound(new { message = "Orden de servicio no encontrada" });
+        }
+
+        return Ok(new
+        {
+            id = solicitud.Id,
+            marca = solicitud.Marca,
+            modelo = solicitud.Modelo,
+            problema = solicitud.Problema,
+            estado = solicitud.Estado,
+            fechaRecibido = solicitud.FechaRecibido,
+            eta = solicitud.Eta,
+            nombreTecnico = solicitud.NombreTecnico
+        });
+    }
+
+    // PUT/POST: api/solicitudes/{id}/asignar (US-011)
+    [HttpPut("{id}/asignar")]
+    [HttpPost("{id}/asignar")]
+    public async Task<IActionResult> AsignarTecnico(int id, [FromBody] ActualizarOrdenDto dto)
     {
         var orden = await _context.SolicitudesServicio.FindAsync(id);
         if (orden == null)
@@ -81,21 +87,68 @@ public class SolicitudesController : ControllerBase
             return NotFound(new { mensaje = "La orden de servicio no existe." });
         }
 
-        orden.Estado = dto.NuevoEstado;
+        if (dto.IdTecnico.HasValue && dto.IdTecnico.Value > 0)
+        {
+            orden.IdTecnico = dto.IdTecnico;
+            orden.NombreTecnico = dto.NombreTecnico;
+            orden.FechaAsignacion = DateTime.Now;
+        }
+
+        if (!string.IsNullOrWhiteSpace(dto.Estado))
+        {
+            orden.Estado = dto.Estado;
+        }
+        else if (string.IsNullOrEmpty(orden.Estado) || orden.Estado == "Recibido" || orden.Estado == "Pendiente")
+        {
+            orden.Estado = "En Proceso";
+        }
+
+        if (!string.IsNullOrWhiteSpace(dto.Eta))
+        {
+            if (DateTime.TryParse(dto.Eta, out var fechaParseada))
+            {
+                orden.Eta = fechaParseada;
+            }
+        }
+
         await _context.SaveChangesAsync();
-        
-        return Ok(new { mensaje = "Estado de la orden actualizado exitosamente.", orden });
+        return Ok(new { mensaje = "Orden actualizada exitosamente.", orden });
+    }
+
+    // PUT: api/solicitudes/{id}/diagnostico (US-013)
+    [HttpPut("{id}/diagnostico")]
+    public async Task<IActionResult> RegistrarDiagnostico(int id, [FromBody] RegistrarDiagnosticoDto dto)
+    {
+        var orden = await _context.SolicitudesServicio.FindAsync(id);
+        if (orden == null)
+        {
+            return NotFound(new { mensaje = "La orden de servicio no existe." });
+        }
+
+        orden.Diagnostico = dto.Diagnostico;
+        orden.PiezasUtilizadas = dto.PiezasUtilizadas;
+
+        if (!string.IsNullOrWhiteSpace(dto.Estado))
+        {
+            orden.Estado = dto.Estado;
+        }
+
+        await _context.SaveChangesAsync();
+        return Ok(new { mensaje = "Diagnóstico y piezas registradas correctamente.", orden });
     }
 }
 
-// DTOs para transferencia de datos
-public class AsignarTecnicoDto
+public class ActualizarOrdenDto
 {
-    public int IdTecnico { get; set; }
-    public string NombreTecnico { get; set; } = string.Empty;
+    public int? IdTecnico { get; set; }
+    public string? NombreTecnico { get; set; }
+    public string? Estado { get; set; }
+    public string? Eta { get; set; }
 }
 
-public class CambiarEstadoDto
+public class RegistrarDiagnosticoDto
 {
-    public string NuevoEstado { get; set; } = string.Empty;
+    public string Diagnostico { get; set; } = string.Empty;
+    public string PiezasUtilizadas { get; set; } = string.Empty;
+    public string? Estado { get; set; }
 }

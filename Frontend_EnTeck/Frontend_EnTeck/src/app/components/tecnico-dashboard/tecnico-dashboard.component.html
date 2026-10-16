@@ -1,0 +1,64 @@
+<div class="tech-panel">
+  <div class="tech-title">Panel de Trabajo para Técnicos (US-012 / US-013 / US-015)</div>
+
+  <div class="grid-orders">
+    @for (orden of misOrdenes(); track orden.id) {
+      <div class="card-order">
+        <div class="card-header">
+          <span class="folio-badge">#{{ orden.id }}</span>
+          <small style="color: #888;">{{ orden.fechaRecibido | date:'shortDate' }}</small>
+        </div>
+
+        <div class="device-name">{{ orden.marca }} {{ orden.modelo }}</div>
+        <div class="problem-desc"><strong>Falla reportada:</strong> {{ orden.problema }}</div>
+
+        <!-- Formulario de Diagnóstico y Piezas (US-013) -->
+        <label class="form-label-custom">Diagnóstico Técnico:</label>
+        <textarea 
+          [(ngModel)]="orden.diagnostico" 
+          class="text-area-custom" 
+          rows="2" 
+          placeholder="Escribe el diagnóstico detallado...">
+        </textarea>
+
+        <label class="form-label-custom">Piezas Utilizadas:</label>
+        <textarea 
+          [(ngModel)]="orden.piezasUtilizadas" 
+          class="text-area-custom" 
+          rows="2" 
+          placeholder="Ej: Pantalla OLED, Batería 3000mAh...">
+        </textarea>
+
+        <div style="margin-top: 0.75rem;">
+          <label class="form-label-custom">Actualizar Estado:</label>
+          <select class="status-select" [value]="orden.estado" (change)="cambiarEstado(orden.id, $event)">
+            <option value="En Diagnostico">🟡 En Diagnóstico</option>
+            <option value="En Reparacion">🔵 En Reparación</option>
+            <option value="Esperando Repuesto">🟠 Esperando Repuesto</option>
+            <option value="Listo">🟢 Listo para Entrega</option>
+          </select>
+        </div>
+
+        <button class="btn-save" (click)="guardarDiagnostico(orden)">
+          💾 Guardar Diagnóstico y Piezas
+        </button>
+
+        <!-- Botón de Notificación por WhatsApp (US-015) -->
+        <button 
+          class="btn-whatsapp" 
+          (click)="notificarPorWhatsApp(orden)" 
+          [disabled]="notificandoMap()[orden.id]">
+          @if (notificandoMap()[orden.id]) {
+            ⏳ Enviando notificación...
+          } @else {
+            📱 Notificar por WhatsApp
+          }
+        </button>
+      </div>
+    } @empty {
+      <div style="grid-column: 1 / -1; text-align: center; color: #888; padding: 3rem;">
+        ☕ No tienes órdenes asignadas pendientes en este momento.
+      </div>
+    }
+  </div>
+</div>

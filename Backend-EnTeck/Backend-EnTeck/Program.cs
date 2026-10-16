@@ -1,11 +1,14 @@
 using Backend_EnTeck.Data;
 using Backend_EnTeck.Models;
 using Microsoft.EntityFrameworkCore;
+using Backend_EnTeck.Services;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddOpenApi();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -15,8 +18,15 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader();
     });
 });
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Registrar HttpClient y WhatsAppService (US-014 / US-015)
+builder.Services.AddHttpClient<IWhatsAppService, WhatsAppService>();
+
+// Registrar controladores para rutas con atributos ([ApiController])
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
@@ -24,15 +34,19 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference(); // Documentación interactiva de .NET 9
 }
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
+app.MapControllers();
 
-// Signup endpoint
+// ----------------------------------------------------
+// AUTH ENDPOINTS (LÓGICA DINÁMICA SIN HARDCODING)
+// ----------------------------------------------------
+
 app.MapPost("/api/auth/signup", async (SignupRequest request, ApplicationDbContext db) =>
 {
-    // Validate required input
     if (string.IsNullOrWhiteSpace(request.Nombre) || 
         string.IsNullOrWhiteSpace(request.Telefono) || 
         string.IsNullOrWhiteSpace(request.Correo) || 
@@ -41,67 +55,106 @@ app.MapPost("/api/auth/signup", async (SignupRequest request, ApplicationDbConte
         return Results.BadRequest(new { message = "Nombre, Telefono, Correo, and Contrasena are required" });
     }
 
-    // Check if user already exists
     var existingUser = await db.Users.FirstOrDefaultAsync(u => u.Correo == request.Correo);
     if (existingUser != null)
     {
         return Results.Conflict(new { message = "Email already registered" });
     }
 
-    // Create new user
     var user = new User
     {
         Nombre = request.Nombre,
         Telefono = request.Telefono,
         Correo = request.Correo,
-        Contrasena = request.Contrasena, // TODO: Hash password before storing
-        Direccion = request.Direccion
+        Contrasena = request.Contrasena,
+        Direccion = request.Direccion,
+        EsAdmin = false // Asignación booleana corregida para C#
     };
 
     db.Users.Add(user);
     await db.SaveChangesAsync();
 
-    return Results.Created($"/api/auth/signup/{user.Id}", new { id = user.Id, correo = user.Correo, nombre = user.Nombre });
+    return Results.Created($"/api/auth/signup/{user.Id}", new 
+    { 
+        id = user.Id, 
+        correo = user.Correo, 
+        nombre = user.Nombre,
+        telefono = user.Telefono,
+        esAdmin = user.EsAdmin 
+    });
 })
 .WithName("Signup")
 .WithOpenApi();
 
-// Login endpoint
 app.MapPost("/api/auth/login", async (SignupRequest request, ApplicationDbContext db) =>
 {
-    // Validate input
     if (string.IsNullOrWhiteSpace(request.Correo) || string.IsNullOrWhiteSpace(request.Contrasena))
     {
         return Results.BadRequest(new { message = "Correo and Contrasena are required" });
     }
 
-    // Check if user exists
     var user = await db.Users.FirstOrDefaultAsync(u => u.Correo == request.Correo);
-    if (user == null)
+    if (user == null || user.Contrasena != request.Contrasena)
     {
         return Results.Unauthorized();
     }
 
-    // Check if password matches
-    if (user.Contrasena != request.Contrasena)
-    {
-        return Results.Unauthorized();
-    }
-
-    return Results.Ok(new { id = user.Id });
+    // RETORNO COMPLETO Y DINÁMICO DESDE SQL SERVER
+    return Results.Ok(new 
+    { 
+        id = user.Id,
+        nombre = user.Nombre,
+        correo = user.Correo,
+        telefono = user.Telefono,
+        esAdmin = user.EsAdmin 
+    });
 })
 .WithName("Login")
 .WithOpenApi();
 
-// Get all clients endpoint
+
+// ----------------------------------------------------
+// CLIENTS ENDPOINTS
+// ----------------------------------------------------
+
+app.MapGet("/api/clientes", async (ApplicationDbContext db) =>
+{
+    var clientes = await db.Users.Select(u => new
+    {
+        id = u.Id,
+        nombre = u.Nombre,
+        telefono = u.Telefono,
+        correo = u.Correo,
+        direccion = u.Direccion,
+        esAdmin = u.EsAdmin
+    }).ToListAsync();
+
+    return Results.Ok(clientes);
+})
+.WithName("GetAllClientes")
+.WithOpenApi();
+
+app.MapGet("/api/clients", async (ApplicationDbContext db) =>
+{
+    var clientes = await db.Users.Select(u => new
+    {
+        id = u.Id,
+        nombre = u.Nombre,
+        telefono = u.Telefono,
+        correo = u.Correo,
+        direccion = u.Direccion,
+        esAdmin = u.EsAdmin
+    }).ToListAsync();
+
+    return Results.Ok(clientes);
+})
+.WithName("GetAllClients")
+.WithOpenApi();
+
 app.MapGet("/api/clients/{id}", async (int id, ApplicationDbContext db) =>
 {
     var cliente = await db.Users.FirstOrDefaultAsync(u => u.Id == id);
-
-    if (cliente == null)
-    {
-        return Results.NotFound(new { message = "Cliente not found" });
-    }
+    if (cliente == null) return Results.NotFound(new { message = "Cliente not found" });
 
     return Results.Ok(new
     {
@@ -116,65 +169,28 @@ app.MapGet("/api/clients/{id}", async (int id, ApplicationDbContext db) =>
 .WithName("GetClientInfo")
 .WithOpenApi();
 
-// Get all service orders endpoint
-app.MapGet("/api/service-order", async (ApplicationDbContext db) =>
+app.MapGet("/api/clientes/{id}", async (int id, ApplicationDbContext db) =>
 {
-    var solicitudes = await db.SolicitudServicios.ToListAsync();
-    
-    var resultado = solicitudes.Select(s => new 
-    { 
-        id = s.Id, 
-        marca = s.Marca,
-        modelo = s.Modelo,
-        problema = s.Problema,
-        estado = s.Estado,
-        fechaRecibido = s.FechaRecibido,
-        eta = s.Eta,
-        idCliente = s.IdCliente
-    }).ToList();
+    var cliente = await db.Users.FirstOrDefaultAsync(u => u.Id == id);
+    if (cliente == null) return Results.NotFound(new { message = "Cliente not found" });
 
-    return Results.Ok(resultado);
-})
-.WithName("GetAllServiceOrders")
-.WithOpenApi();
-
-// Get all service orders by client ID endpoint
-app.MapGet("/api/service-order/client/{idCliente}", async (int idCliente, ApplicationDbContext db) =>
-{
-    var solicitudes = await db.SolicitudServicios
-        .Where(s => s.IdCliente == idCliente)
-        .ToListAsync();
-    
-    if (solicitudes == null || solicitudes.Count == 0)
+    return Results.Ok(new
     {
-        return Results.NotFound(new { message = "No service orders found for this client" });
-    }
-
-    var resultado = solicitudes.Select(s => new 
-    { 
-        id = s.Id, 
-        marca = s.Marca,
-        modelo = s.Modelo,
-        problema = s.Problema,
-        estado = s.Estado,
-        fechaRecibido = s.FechaRecibido,
-        eta = s.Eta,
-        idCliente = s.IdCliente
-    }).ToList();
-
-    return Results.Ok(resultado);
+        id = cliente.Id,
+        nombre = cliente.Nombre,
+        telefono = cliente.Telefono,
+        correo = cliente.Correo,
+        direccion = cliente.Direccion,
+        esAdmin = cliente.EsAdmin
+    });
 })
-.WithName("GetServiceOrdersByClient")
+.WithName("GetClienteInfoEs")
 .WithOpenApi();
 
-// Delete client endpoint
 app.MapDelete("/api/clients/{id}", async (int id, ApplicationDbContext db) =>
 {
     var cliente = await db.Users.FirstOrDefaultAsync(u => u.Id == id);
-    if (cliente == null)
-    {
-        return Results.NotFound(new { message = "Cliente not found" });
-    }
+    if (cliente == null) return Results.NotFound(new { message = "Cliente not found" });
 
     db.Users.Remove(cliente);
     await db.SaveChangesAsync();
@@ -184,10 +200,102 @@ app.MapDelete("/api/clients/{id}", async (int id, ApplicationDbContext db) =>
 .WithName("DeleteClient")
 .WithOpenApi();
 
-// Service order registration endpoint
+app.MapDelete("/api/clientes/{id}", async (int id, ApplicationDbContext db) =>
+{
+    var cliente = await db.Users.FirstOrDefaultAsync(u => u.Id == id);
+    if (cliente == null) return Results.NotFound(new { message = "Cliente not found" });
+
+    db.Users.Remove(cliente);
+    await db.SaveChangesAsync();
+
+    return Results.Ok(new { message = "Cliente deleted successfully" });
+})
+.WithName("DeleteClienteEs")
+.WithOpenApi();
+
+
+// ----------------------------------------------------
+// SERVICE ORDERS ENDPOINTS
+// ----------------------------------------------------
+
+app.MapGet("/api/service-order", async (ApplicationDbContext db) =>
+{
+    var solicitudes = await db.SolicitudesServicio.ToListAsync();
+    
+    var resultado = solicitudes.Select(s => new 
+    { 
+        id = s.Id, 
+        marca = s.Marca,
+        modelo = s.Modelo,
+        problema = s.Problema,
+        estado = s.Estado,
+        fechaRecibido = s.FechaRecibido,
+        eta = s.Eta,
+        idCliente = s.IdCliente,
+        idTecnico = s.IdTecnico,
+        nombreTecnico = s.NombreTecnico,
+        fechaAsignacion = s.FechaAsignacion
+    }).ToList();
+
+    return Results.Ok(resultado);
+})
+.WithName("GetAllServiceOrders")
+.WithOpenApi();
+
+app.MapGet("/api/service-order/{id}", async (int id, ApplicationDbContext db) =>
+{
+    var solicitud = await db.SolicitudesServicio.FirstOrDefaultAsync(s => s.Id == id);
+    if (solicitud == null) 
+    {
+        return Results.NotFound(new { message = "Orden no encontrada" });
+    }
+
+    return Results.Ok(new 
+    { 
+        id = solicitud.Id, 
+        marca = solicitud.Marca,
+        modelo = solicitud.Modelo,
+        problema = solicitud.Problema,
+        estado = solicitud.Estado,
+        fechaRecibido = solicitud.FechaRecibido,
+        eta = solicitud.Eta,
+        idCliente = solicitud.IdCliente,
+        idTecnico = solicitud.IdTecnico,
+        nombreTecnico = solicitud.NombreTecnico,
+        fechaAsignacion = solicitud.FechaAsignacion
+    });
+})
+.WithName("GetServiceOrderById")
+.WithOpenApi();
+
+app.MapGet("/api/service-order/client/{idCliente}", async (int idCliente, ApplicationDbContext db) =>
+{
+    var solicitudes = await db.SolicitudesServicio
+        .Where(s => s.IdCliente == idCliente)
+        .ToListAsync();
+    
+    var resultado = solicitudes.Select(s => new 
+    { 
+        id = s.Id, 
+        marca = s.Marca,
+        modelo = s.Modelo,
+        problema = s.Problema,
+        estado = s.Estado,
+        fechaRecibido = s.FechaRecibido,
+        eta = s.Eta,
+        idCliente = s.IdCliente,
+        idTecnico = s.IdTecnico,
+        nombreTecnico = s.NombreTecnico,
+        fechaAsignacion = s.FechaAsignacion
+    }).ToList();
+
+    return Results.Ok(resultado);
+})
+.WithName("GetServiceOrdersByClient")
+.WithOpenApi();
+
 app.MapPost("/api/service-order", async (ServiceOrderRequest request, ApplicationDbContext db) =>
 {
-    // Validate required input
     if (string.IsNullOrWhiteSpace(request.Marca) || 
         string.IsNullOrWhiteSpace(request.Modelo) || 
         string.IsNullOrWhiteSpace(request.Problema) ||
@@ -197,14 +305,12 @@ app.MapPost("/api/service-order", async (ServiceOrderRequest request, Applicatio
         return Results.BadRequest(new { message = "Marca, Modelo, Problema, Estado, and IdCliente are required" });
     }
 
-    // Check if client exists
     var cliente = await db.Users.FirstOrDefaultAsync(u => u.Id == request.IdCliente);
     if (cliente == null)
     {
         return Results.NotFound(new { message = "Cliente not found" });
     }
 
-    // Create new service order
     var solicitud = new SolicitudServicio
     {
         Marca = request.Marca,
@@ -216,7 +322,7 @@ app.MapPost("/api/service-order", async (ServiceOrderRequest request, Applicatio
         IdCliente = request.IdCliente
     };
 
-    db.SolicitudServicios.Add(solicitud);
+    db.SolicitudesServicio.Add(solicitud);
     await db.SaveChangesAsync();
 
     return Results.Created($"/api/service-order/{solicitud.Id}", new 
@@ -234,30 +340,6 @@ app.MapPost("/api/service-order", async (ServiceOrderRequest request, Applicatio
 .WithName("CreateServiceOrder")
 .WithOpenApi();
 
-// Get service order by ID endpoint
-app.MapGet("/api/service-order/{id}", async (int id, ApplicationDbContext db) =>
-{
-    var solicitud = await db.SolicitudServicios.FirstOrDefaultAsync(s => s.Id == id);
-    if (solicitud == null)
-    {
-        return Results.NotFound(new { message = "Service order not found" });
-    }
-
-    return Results.Ok(new 
-    { 
-        id = solicitud.Id, 
-        marca = solicitud.Marca,
-        modelo = solicitud.Modelo,
-        problema = solicitud.Problema,
-        estado = solicitud.Estado,
-        fechaRecibido = solicitud.FechaRecibido,
-        eta = solicitud.Eta,
-        idCliente = solicitud.IdCliente
-    });
-})
-.WithName("GetServiceOrder")
-.WithOpenApi();
-
 var summaries = new[]
 {
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
@@ -265,7 +347,7 @@ var summaries = new[]
 
 app.MapGet("/weatherforecast", () =>
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
+    var forecast = Enumerable.Range(1, 5).Select(index =>
         new WeatherForecast
         (
             DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
