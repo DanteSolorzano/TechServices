@@ -368,6 +368,22 @@
           }
         }
       },
+      "Scalar.AspNetCore/2.18.0": {
+        "type": "package",
+        "compile": {
+          "lib/net10.0/Scalar.AspNetCore.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net10.0/Scalar.AspNetCore.dll": {
+            "related": ".xml"
+          }
+        },
+        "frameworkReferences": [
+          "Microsoft.AspNetCore.App"
+        ]
+      },
       "System.ClientModel/1.0.0": {
         "type": "package",
         "dependencies": {
@@ -1022,6 +1038,25 @@
         "useSharedDesignerContext.txt"
       ]
     },
+    "Scalar.AspNetCore/2.18.0": {
+      "sha512": "wwI3khcYNM7oL6axr4a41G29fJYOS3ckusgYZ4NiIccL8Amh2LOeu4HSK1SrQWiMJNrgoFqyWfDkOkunQCiRDw==",
+      "type": "package",
+      "path": "scalar.aspnetcore/2.18.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "icon.png",
+        "lib/net10.0/Scalar.AspNetCore.dll",
+        "lib/net10.0/Scalar.AspNetCore.xml",
+        "lib/net8.0/Scalar.AspNetCore.dll",
+        "lib/net8.0/Scalar.AspNetCore.xml",
+        "lib/net9.0/Scalar.AspNetCore.dll",
+        "lib/net9.0/Scalar.AspNetCore.xml",
+        "scalar.aspnetcore.2.18.0.nupkg.sha512",
+        "scalar.aspnetcore.nuspec"
+      ]
+    },
     "System.ClientModel/1.0.0": {
       "sha512": "I3CVkvxeqFYjIVEP59DnjbeoGNfo/+SZrCLpRz2v/g0gpCHaEMPtWSY0s9k/7jR1rAsLNg2z2u1JRB76tPjnIw==",
       "type": "package",
@@ -1274,7 +1309,8 @@
     "net10.0": [
       "Microsoft.AspNetCore.OpenApi >= 9.0.11",
       "Microsoft.EntityFrameworkCore >= 9.0.0",
-      "Microsoft.EntityFrameworkCore.SqlServer >= 9.0.0"
+      "Microsoft.EntityFrameworkCore.SqlServer >= 9.0.0",
+      "Scalar.AspNetCore >= 2.18.0"
     ]
   },
   "packageFolders": {
@@ -1333,6 +1369,10 @@
           "Microsoft.EntityFrameworkCore.SqlServer": {
             "target": "Package",
             "version": "[9.0.0, )"
+          },
+          "Scalar.AspNetCore": {
+            "target": "Package",
+            "version": "[2.18.0, )"
           }
         },
         "imports": [
@@ -1354,7 +1394,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.401/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.402/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.AspNetCore": "(,10.0.32767]",
           "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",

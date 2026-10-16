@@ -19,7 +19,7 @@ public class SolicitudServicio
     public string Problema { get; set; } = string.Empty;
 
     [Column("estado")]
-    public string Estado { get; set; } = "Recibido";
+    public string Estado { get; set; } = "Recibido"; // Recibido, En Diagnóstico, En Reparación, Listo
 
     [Column("fecha_recibido")]
     public DateTime FechaRecibido { get; set; }
@@ -30,7 +30,7 @@ public class SolicitudServicio
     [Column("id_cliente")]
     public int IdCliente { get; set; }
 
-    // --- PROPIEDADES NAVEGACIONALES Y DE ASIGNACIÓN (US-011 y US-012) ---
+    // --- Mapeo para US-011 (Reparto de trabajo a técnicos) ---
     [Column("id_tecnico")]
     public int? IdTecnico { get; set; }
 
@@ -39,4 +39,11 @@ public class SolicitudServicio
 
     [Column("fecha_asignacion")]
     public DateTime? FechaAsignacion { get; set; }
+
+    // --- Mapeo para US-013 (Registro de Diagnóstico y Piezas) ---
+    [Column("diagnostico")]
+    public string? Diagnostico { get; set; }
+
+    [Column("piezas_utilizadas")]
+    public string? PiezasUtilizadas { get; set; }
 }
