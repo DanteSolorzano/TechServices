@@ -11,6 +11,7 @@ interface User {
   correo: string;
   telefono: string;
   direccion: string;
+  esAdmin: boolean;
 }
 
 @Component({
@@ -67,18 +68,27 @@ export class AdminDashboardComponent implements OnInit {
   private serviceOrderService = inject(ServiceOrderService);
   private httpClient = inject(HttpClient);
 
-  // Control de pestañas (Inventario vs Reparto de Órdenes)
-  activeTab = signal<'inventario' | 'reparto'>('inventario');
+  // Control de pestañas (Inventario, Reparto de Órdenes y Usuarios)
+  activeTab = signal<'inventario' | 'reparto' | 'usuarios'>('inventario');
 
   // Estado de órdenes pendientes (US-011)
   ordenesPendientes = signal<ServiceOrder[]>([]);
 
-  // Lista de usuarios/técnicos cargados dinámicamente
-  tecnicos = signal<{ id: number; nombre: string }[]>([
-    { id: 1, nombre: 'Ángel Ramos' },
-    { id: 2, nombre: 'Dante Solórzano' },
-    { id: 3, nombre: 'Bryan Espinoza' }
-  ]);
+  // Lista general de usuarios traídos de la BD
+  usuarios = signal<User[]>([]);
+
+  // Lista filtrada/mapeada de técnicos para la asignación de órdenes
+  tecnicos = signal<{ id: number; nombre: string }[]>([]);
+
+  // Formulario para registrar nuevo usuario
+  nuevoUsuario = {
+    nombre: '',
+    correo: '',
+    contrasena: '',
+    telefono: '',
+    direccion: '',
+    esAdmin: false
+  };
 
   // Estado del formulario de productos
   isEditing = signal(false);
@@ -98,12 +108,40 @@ export class AdminDashboardComponent implements OnInit {
   cargarUsuarios() {
     this.httpClient.get<User[]>('http://localhost:5190/api/clientes').subscribe({
       next: (users) => {
-        if (users && users.length > 0) {
+        if (users) {
+          this.usuarios.set(users);
+          // Mapeamos a todos los usuarios para la selección de técnicos
           const mappedTechs = users.map(u => ({ id: u.id, nombre: u.nombre }));
           this.tecnicos.set(mappedTechs);
         }
       },
       error: (err) => console.error('Error al cargar clientes/técnicos:', err)
+    });
+  }
+
+  registrarUsuario() {
+    if (!this.nuevoUsuario.nombre || !this.nuevoUsuario.correo) {
+      alert('Por favor, ingresa al menos el Nombre y el Correo.');
+      return;
+    }
+
+    this.httpClient.post('http://localhost:5190/api/clientes', this.nuevoUsuario).subscribe({
+      next: () => {
+        alert(`¡Usuario "${this.nuevoUsuario.nombre}" creado exitosamente!`);
+        this.nuevoUsuario = {
+          nombre: '',
+          correo: '',
+          contrasena: '',
+          telefono: '',
+          direccion: '',
+          esAdmin: false
+        };
+        this.cargarUsuarios(); // Recarga la tabla de usuarios y desplegables
+      },
+      error: (err) => {
+        console.error('Error al registrar usuario:', err);
+        alert('Hubo un problema al crear el usuario.');
+      }
     });
   }
 
@@ -167,7 +205,7 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   deleteItem(id: number) {
-    if(confirm('¿Estás seguro de eliminar este producto?')) {
+    if (confirm('¿Estás seguro de eliminar este producto?')) {
       this.items.update(current => current.filter(i => i.id !== id));
     }
   }

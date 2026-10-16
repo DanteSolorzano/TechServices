@@ -42,7 +42,7 @@ app.UseCors("AllowAll");
 app.MapControllers();
 
 // ----------------------------------------------------
-// AUTH ENDPOINTS
+// AUTH ENDPOINTS (LÓGICA DINÁMICA SIN HARDCODING)
 // ----------------------------------------------------
 
 app.MapPost("/api/auth/signup", async (SignupRequest request, ApplicationDbContext db) =>
@@ -67,13 +67,21 @@ app.MapPost("/api/auth/signup", async (SignupRequest request, ApplicationDbConte
         Telefono = request.Telefono,
         Correo = request.Correo,
         Contrasena = request.Contrasena,
-        Direccion = request.Direccion
+        Direccion = request.Direccion,
+        EsAdmin = false // Asignación booleana corregida para C#
     };
 
     db.Users.Add(user);
     await db.SaveChangesAsync();
 
-    return Results.Created($"/api/auth/signup/{user.Id}", new { id = user.Id, correo = user.Correo, nombre = user.Nombre });
+    return Results.Created($"/api/auth/signup/{user.Id}", new 
+    { 
+        id = user.Id, 
+        correo = user.Correo, 
+        nombre = user.Nombre,
+        telefono = user.Telefono,
+        esAdmin = user.EsAdmin 
+    });
 })
 .WithName("Signup")
 .WithOpenApi();
@@ -91,7 +99,15 @@ app.MapPost("/api/auth/login", async (SignupRequest request, ApplicationDbContex
         return Results.Unauthorized();
     }
 
-    return Results.Ok(new { id = user.Id });
+    // RETORNO COMPLETO Y DINÁMICO DESDE SQL SERVER
+    return Results.Ok(new 
+    { 
+        id = user.Id,
+        nombre = user.Nombre,
+        correo = user.Correo,
+        telefono = user.Telefono,
+        esAdmin = user.EsAdmin 
+    });
 })
 .WithName("Login")
 .WithOpenApi();
