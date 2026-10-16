@@ -21,6 +21,9 @@
         <button class="tab-btn" [class.active]="activeTab() === 'usuarios'" (click)="activeTab.set('usuarios')">
           👥 Gestión de Usuarios
         </button>
+        <button class="tab-btn" [class.active]="activeTab() === 'reportes'" (click)="activeTab.set('reportes')">
+          📊 Métricas y Reportes (US-016)
+        </button>
       </div>
 
       <!-- SECCIÓN 1: INVENTARIO -->
@@ -180,10 +183,10 @@
         </table>
       }
 
-      <!-- SECCIÓN 3: GESTIÓN DE USUARIOS Y TÉCNICOS -->
+      <!-- SECCIÓN 3: GESTIÓN DE USUARIOS CON TRES ROLES -->
       @if (activeTab() === 'usuarios') {
         <div class="edit-form" style="margin-bottom: 20px;">
-          <h3>➕ Registrar Nuevo Usuario / Técnico</h3>
+          <h3>➕ Registrar Nuevo Usuario</h3>
           <div class="form-grid">
             <div class="form-group">
               <label>Nombre Completo</label>
@@ -212,9 +215,10 @@
 
             <div class="form-group">
               <label>Rol de Usuario</label>
-              <select [(ngModel)]="nuevoUsuario.esAdmin">
-                <option [ngValue]="false">🔧 Técnico / Cliente</option>
-                <option [ngValue]="true">🛡️ Administrador</option>
+              <select [(ngModel)]="nuevoUsuario.rolSeleccionado">
+                <option value="cliente">👤 Cliente</option>
+                <option value="tecnico">🛠️ Técnico</option>
+                <option value="admin">🛡️ Administrador</option>
               </select>
             </div>
           </div>
@@ -238,23 +242,106 @@
             </thead>
             <tbody>
               @for (usr of usuarios(); track usr.id) {
+                @let infoRol = obtenerEtiquetaRol(usr);
                 <tr>
                   <td><strong>#{{ usr.id }}</strong></td>
                   <td>{{ usr.nombre }}</td>
                   <td>{{ usr.correo }}</td>
                   <td>{{ usr.telefono }}</td>
                   <td>
-                    @if (usr.esAdmin) {
-                      <span class="stock-badge in-stock">Administrador</span>
-                    } @else {
-                      <span class="stock-badge low-stock">Técnico / Cliente</span>
-                    }
+                    <span class="stock-badge" [ngClass]="infoRol.clase">
+                      {{ infoRol.texto }}
+                    </span>
                   </td>
                 </tr>
               }
             </tbody>
           </table>
         </div>
+      }
+
+      <!-- SECCIÓN 4: MÉTRICAS Y REPORTES DE RENDIMIENTO (US-016) -->
+      @if (activeTab() === 'reportes') {
+        <div style="margin-bottom: 15px;">
+          <h3>📊 Métricas y Reportes Operativos</h3>
+          <p style="font-size: 13px; color: #666;">Monitoreo general de rendimiento e indicadores por técnico.</p>
+        </div>
+
+        <!-- Barra de Filtros -->
+        <div class="filter-bar">
+          <div>
+            <label>Desde: </label>
+            <input type="date" [(ngModel)]="filtroFechaInicio" (change)="cargarReportes()">
+          </div>
+          <div>
+            <label>Hasta: </label>
+            <input type="date" [(ngModel)]="filtroFechaFin" (change)="cargarReportes()">
+          </div>
+          <button class="btn btn-cancel" style="font-size: 12px; padding: 6px 12px;" (click)="limpiarFiltrosFechas()">Limpiar Filtros</button>
+        </div>
+
+        @if (reporteRendimiento(); as rep) {
+          <!-- Tarjetas KPI -->
+          <div class="kpi-grid">
+            <div class="kpi-card" style="border-left-color: #007bff;">
+              <h4>Total Órdenes</h4>
+              <div class="number">{{ rep.totalOrdenes }}</div>
+            </div>
+            <div class="kpi-card" style="border-left-color: #28a745;">
+              <h4>Completadas / Entregadas</h4>
+              <div class="number">{{ rep.completadas }}</div>
+            </div>
+            <div class="kpi-card" style="border-left-color: #ffc107;">
+              <h4>En Proceso</h4>
+              <div class="number">{{ rep.enProceso }}</div>
+            </div>
+            <div class="kpi-card" style="border-left-color: #dc3545;">
+              <h4>Pendientes / Recibidas</h4>
+              <div class="number">{{ rep.pendientes }}</div>
+            </div>
+          </div>
+
+          <!-- Tabla Rendimiento por Técnico -->
+          <h3>👨‍🔧 Rendimiento por Técnico</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>ID Técnico</th>
+                <th>Técnico</th>
+                <th>Órdenes Asignadas</th>
+                <th>Completadas</th>
+                <th>En Proceso</th>
+                <th>Efectividad</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (tec of rep.rendimientoTecnicos; track tec.tecnicoId) {
+                <tr>
+                  <td><strong>#{{ tec.tecnicoId }}</strong></td>
+                  <td>👤 {{ tec.nombreTecnico }}</td>
+                  <td>{{ tec.ordenesAsignadas }}</td>
+                  <td><span class="stock-badge in-stock">{{ tec.ordenesFinalizadas }}</span></td>
+                  <td><span class="stock-badge low-stock">{{ tec.ordenesEnProceso }}</span></td>
+                  <td>
+                    <strong>
+                      {{ tec.ordenesAsignadas > 0 ? ((tec.ordenesFinalizadas / tec.ordenesAsignadas) * 100).toFixed(0) : 0 }}%
+                    </strong>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="6" style="text-align: center; color: #888; padding: 1.5rem;">
+                    Sin actividad asignada a técnicos en este rango de fechas.
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        } @else {
+          <div style="text-align: center; padding: 3rem; color: #666;">
+            Cargando reporte de rendimiento...
+          </div>
+        }
       }
 
     </div>

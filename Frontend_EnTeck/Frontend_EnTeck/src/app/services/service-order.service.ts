@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 
 export interface ServiceOrder {
@@ -19,6 +19,22 @@ export interface ServiceOrder {
   fechaAsignacion?: string;
   diagnostico?: string;
   piezasUtilizadas?: string;
+}
+
+export interface RendimientoTecnico {
+  tecnicoId: number;
+  nombreTecnico: string;
+  ordenesAsignadas: number;
+  ordenesFinalizadas: number;
+  ordenesEnProceso: number;
+}
+
+export interface ReporteRendimiento {
+  totalOrdenes: number;
+  completadas: number;
+  enProceso: number;
+  pendientes: number;
+  rendimientoTecnicos: RendimientoTecnico[];
 }
 
 @Injectable({
@@ -52,18 +68,15 @@ export class ServiceOrderService {
   getOrdenesPorTecnico(tecnicoId: number): Observable<ServiceOrder[]> {
     return this.http.get<ServiceOrder[]>(`${this.apiUrl}/tecnico/${tecnicoId}`).pipe(
       map(ordenes => {
-        // Si el endpoint devuelve datos, los entrega directamente
         if (ordenes && ordenes.length > 0) {
           return ordenes;
         }
         throw new Error('Sin ordenes directas');
       }),
       catchError(() => {
-        // Si el endpoint de técnico falla o viene vacío, recupera todas las pendientes de la BD
         return this.getPendientes().pipe(
           map(ordenes => {
             if (!ordenes) return [];
-            // Devuelve las órdenes que corresponden al técnico o que aún están pendientes de asignación
             const filtradas = ordenes.filter(o => 
               o.idTecnico === tecnicoId || 
               !o.idTecnico || 
@@ -100,5 +113,13 @@ export class ServiceOrderService {
 
   getPublicTracking(id: number | string): Observable<any> {
     return this.http.get(`${this.apiUrl}/public/tracking/${id}`);
+  }
+
+  getReporteRendimiento(fechaInicio?: string, fechaFin?: string): Observable<ReporteRendimiento> {
+    let params = new HttpParams();
+    if (fechaInicio) params = params.set('fechaInicio', fechaInicio);
+    if (fechaFin) params = params.set('fechaFin', fechaFin);
+
+    return this.http.get<ReporteRendimiento>(`${this.apiUrl}/reporte-rendimiento`, { params });
   }
 }

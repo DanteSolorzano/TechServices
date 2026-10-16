@@ -40,7 +40,6 @@ public class SolicitudesController : ControllerBase
     }
 
     // GET: api/solicitudes/tecnico/13 (US-012 / US-013)
-    // GET: api/solicitudes/tecnico/13
     [HttpGet("tecnico/{tecnicoId}")]
     public async Task<IActionResult> GetPorTecnico(int tecnicoId)
     {
@@ -74,6 +73,51 @@ public class SolicitudesController : ControllerBase
             eta = solicitud.Eta,
             nombreTecnico = solicitud.NombreTecnico
         });
+    }
+
+    // GET: api/solicitudes/reporte-rendimiento (US-016)
+    [HttpGet("reporte-rendimiento")]
+    public async Task<IActionResult> GetReporteRendimiento([FromQuery] DateTime? fechaInicio, [FromQuery] DateTime? fechaFin)
+    {
+        var query = _context.SolicitudesServicio.AsQueryable();
+
+        if (fechaInicio.HasValue)
+            query = query.Where(s => s.FechaRecibido >= fechaInicio.Value);
+
+        if (fechaFin.HasValue)
+            query = query.Where(s => s.FechaRecibido <= fechaFin.Value);
+
+        var solicitudes = await query.ToListAsync();
+
+        var totalOrdenes = solicitudes.Count;
+        var completadas = solicitudes.Count(s => s.Estado == "Entregado" || s.Estado == "Reparado" || s.Estado == "Completado");
+        var enProceso = solicitudes.Count(s => s.Estado == "En Diagnóstico" || s.Estado == "En Reparación" || s.Estado == "En Proceso");
+        var pendientes = solicitudes.Count(s => s.Estado == "Recibido" || s.Estado == "Pendiente" || string.IsNullOrEmpty(s.Estado));
+
+        // Métrica por técnicos
+        var rendimientoTecnicos = solicitudes
+            .Where(s => s.IdTecnico.HasValue && s.IdTecnico.Value > 0)
+            .GroupBy(s => new { IdTecnico = s.IdTecnico!.Value, Nombre = string.IsNullOrWhiteSpace(s.NombreTecnico) ? "Técnico General" : s.NombreTecnico })
+            .Select(g => new RendimientoTecnicoDto
+            {
+                TecnicoId = g.Key.IdTecnico,
+                NombreTecnico = g.Key.Nombre,
+                OrdenesAsignadas = g.Count(),
+                OrdenesFinalizadas = g.Count(s => s.Estado == "Entregado" || s.Estado == "Reparado" || s.Estado == "Completado"),
+                OrdenesEnProceso = g.Count(s => s.Estado == "En Diagnóstico" || s.Estado == "En Reparación" || s.Estado == "En Proceso")
+            })
+            .ToList();
+
+        var reporte = new ReporteRendimientoDto
+        {
+            TotalOrdenes = totalOrdenes,
+            Completadas = completadas,
+            EnProceso = enProceso,
+            Pendientes = pendientes,
+            RendimientoTecnicos = rendimientoTecnicos
+        };
+
+        return Ok(reporte);
     }
 
     // PUT/POST: api/solicitudes/{id}/asignar (US-011)
@@ -151,4 +195,22 @@ public class RegistrarDiagnosticoDto
     public string Diagnostico { get; set; } = string.Empty;
     public string PiezasUtilizadas { get; set; } = string.Empty;
     public string? Estado { get; set; }
+}
+
+public class ReporteRendimientoDto
+{
+    public int TotalOrdenes { get; set; }
+    public int Completadas { get; set; }
+    public int EnProceso { get; set; }
+    public int Pendientes { get; set; }
+    public List<RendimientoTecnicoDto> RendimientoTecnicos { get; set; } = new();
+}
+
+public class RendimientoTecnicoDto
+{
+    public int TecnicoId { get; set; }
+    public string NombreTecnico { get; set; } = string.Empty;
+    public int OrdenesAsignadas { get; set; }
+    public int OrdenesFinalizadas { get; set; }
+    public int OrdenesEnProceso { get; set; }
 }
