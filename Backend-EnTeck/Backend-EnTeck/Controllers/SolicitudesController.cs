@@ -39,6 +39,20 @@ public class SolicitudesController : ControllerBase
         return Ok(solicitudes);
     }
 
+    // GET: api/solicitudes/tecnico/13 (US-012 / US-013)
+    // GET: api/solicitudes/tecnico/13
+    [HttpGet("tecnico/{tecnicoId}")]
+    public async Task<IActionResult> GetPorTecnico(int tecnicoId)
+    {
+        // Trae las órdenes asignadas a este técnico O las órdenes sin técnico asignado/pendientes
+        var solicitudes = await _context.SolicitudesServicio
+            .Where(s => s.IdTecnico == tecnicoId || s.IdTecnico == null || s.IdTecnico == 0 || string.IsNullOrEmpty(s.NombreTecnico))
+            .OrderByDescending(s => s.Id)
+            .ToListAsync();
+
+        return Ok(solicitudes);
+    }
+
     // GET: api/solicitudes/public/tracking/2 (US-015)
     [HttpGet("public/tracking/{id:int}")]
     public async Task<IActionResult> GetPublicTracking(int id)

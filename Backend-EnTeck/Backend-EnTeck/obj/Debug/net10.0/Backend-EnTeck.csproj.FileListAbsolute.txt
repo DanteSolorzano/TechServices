@@ -1,5 +1,5 @@
-C:\Users\DGTITBESPINOZAG\Documents\Enteck-platform\Backend-EnTeck\Backend-EnTeck\bin\Debug\net10.0\appsettings.Development.json
 C:\Users\DGTITBESPINOZAG\Documents\Enteck-platform\Backend-EnTeck\Backend-EnTeck\bin\Debug\net10.0\appsettings.json
+C:\Users\DGTITBESPINOZAG\Documents\Enteck-platform\Backend-EnTeck\Backend-EnTeck\bin\Debug\net10.0\appsettings.Development.json
 C:\Users\DGTITBESPINOZAG\Documents\Enteck-platform\Backend-EnTeck\Backend-EnTeck\bin\Debug\net10.0\Backend-EnTeck.staticwebassets.endpoints.json
 C:\Users\DGTITBESPINOZAG\Documents\Enteck-platform\Backend-EnTeck\Backend-EnTeck\bin\Debug\net10.0\Backend-EnTeck.exe
 C:\Users\DGTITBESPINOZAG\Documents\Enteck-platform\Backend-EnTeck\Backend-EnTeck\bin\Debug\net10.0\Backend-EnTeck.deps.json
