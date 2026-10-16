@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { AuthComponent } from './components/auth/auth.component';
-import { AdminComponent } from './components/admin/admin.component';
+import { AdminDashboardComponent } from './components/admin-dashboard/admin-dashboard.component';
 import { TrackingComponent } from './components/tracking/tracking.component';
 
 export const routes: Routes = [
@@ -12,7 +12,7 @@ export const routes: Routes = [
 
   // Rutas de autenticación y administración
   { path: 'auth', component: AuthComponent },
-  { path: 'admin', component: AdminComponent },
+  { path: 'admin', component: AdminDashboardComponent },
 
   // Regla Wildcard (comodín **): redirige cualquier ruta desconocida a tracking
   { path: '**', redirectTo: 'tracking' }

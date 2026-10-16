@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Backend-EnTeck")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+860fa74545596bcb1af7b69b73926a644ad7cfc2")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+806d08a54073f24aa43150f851111dbb5fc67871")]
 [assembly: System.Reflection.AssemblyProductAttribute("Backend-EnTeck")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Backend-EnTeck")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
