@@ -45,7 +45,36 @@
   </button>
 }
 
-<!-- 4. VISTA DE CLIENTE AUTENTICADO (MENÚ HOME) -->
+<!-- 4. VISTA DEL PANEL DE TÉCNICO EXCLUSIVO -->
+@if (currentView() === 'tecnico') {
+  <div style="background-color: #f4f7f6; min-height: 100vh;">
+    <!-- Encabezado Superior del Técnico -->
+    <div style="background: #1a1a1a; border-bottom: 2px solid #00e5ff; padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="font-size: 24px;">🛠️</span>
+        <h2 style="margin: 0; color: #fff; font-family: 'Segoe UI', sans-serif; letter-spacing: 1px; font-size: 20px;">
+          EnTeck <span style="color:#00e5ff">| Panel de Técnico</span>
+        </h2>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <span style="color: #00e5ff; font-size: 14px; font-weight: 500;">
+          Técnico: <strong>{{ currentClient()?.nombre || currentClient()?.correo }}</strong>
+        </span>
+        <button 
+          (click)="logout()" 
+          style="padding: 8px 15px; border: 1px solid #ff4444; color: #ff4444; background: transparent; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;">
+          Cerrar Sesión
+        </button>
+      </div>
+    </div>
+
+    <!-- Componente Dashboard del Técnico -->
+    <app-tecnico-dashboard></app-tecnico-dashboard>
+  </div>
+}
+
+<!-- 5. VISTA DE CLIENTE AUTENTICADO (MENÚ HOME) -->
 @if (currentView() === 'home' && currentClient()) {
   <!-- Barra de Navegación Superior -->
   <div style="background: #1a1a1a; border-bottom: 2px solid #00e5ff; padding: 1rem 2rem; display: flex; align-items: center; gap: 1rem; position: sticky; top: 0; z-index: 100; justify-content: space-between; box-shadow: 0 4px 15px rgba(0, 229, 255, 0.1);">
@@ -58,7 +87,7 @@
     </div>
 
     <div style="flex-grow: 1; text-align: center;">
-      <span style="color: #00e5ff; font-size: 14px; font-weight: 500;">Bienvenido, {{ currentClient()?.nombre }}</span>
+      <span style="color: #00e5ff; font-size: 14px; font-weight: 500;">Bienvenido, {{ currentClient()?.nombre || currentClient()?.correo }}</span>
     </div>
 
     <div style="display: flex; align-items: center; gap: 1rem;">
@@ -97,7 +126,7 @@
   </div>
 }
 
-<!-- 5. VISTA DE SOLICITUD DE SERVICIO -->
+<!-- 6. VISTA DE SOLICITUD DE SERVICIO -->
 @if (currentView() === 'service-order') {
   <app-service-request></app-service-request>
 }
