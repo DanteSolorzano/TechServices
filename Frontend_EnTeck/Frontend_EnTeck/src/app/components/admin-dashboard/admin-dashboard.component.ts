@@ -178,6 +178,7 @@ export class AdminDashboardComponent implements OnInit {
       rol: this.nuevoUsuario.rolSeleccionado
     };
 
+    // Intentamos en /api/clientes
     this.httpClient.post('http://localhost:5190/api/clientes', payload).subscribe({
       next: () => {
         alert(`¡Usuario "${this.nuevoUsuario.nombre}" creado exitosamente!`);
@@ -192,8 +193,27 @@ export class AdminDashboardComponent implements OnInit {
         this.cargarUsuarios();
       },
       error: (err) => {
-        console.error('Error al registrar usuario:', err);
-        alert('Hubo un problema al crear el usuario.');
+        console.error('Error en /api/clientes, probando /api/auth/register...', err);
+        
+        // Fallback en caso de que el backend gestione registros por /api/auth/register
+        this.httpClient.post('http://localhost:5190/api/auth/register', payload).subscribe({
+          next: () => {
+            alert(`¡Usuario "${this.nuevoUsuario.nombre}" registrado exitosamente!`);
+            this.nuevoUsuario = {
+              nombre: '',
+              correo: '',
+              contrasena: '',
+              telefono: '',
+              direccion: '',
+              rolSeleccionado: 'cliente'
+            };
+            this.cargarUsuarios();
+          },
+          error: (err2) => {
+            console.error('Error al registrar usuario:', err2);
+            alert('Hubo un problema al crear el usuario. Revisa el backend en C#.');
+          }
+        });
       }
     });
   }

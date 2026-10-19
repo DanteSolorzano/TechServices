@@ -17,7 +17,6 @@ public class ApplicationDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Mapeo explicito de la entidad User a la tabla física Clientes
         modelBuilder.Entity<User>(entity =>
         {
             entity.ToTable("Clientes");
