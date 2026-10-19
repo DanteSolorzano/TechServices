@@ -25,4 +25,7 @@ public class User
 
     [Column("esAdmin")]
     public bool EsAdmin { get; set; }
+
+    [Column("rol")]
+    public string Rol { get; set; } = "cliente";
 }
