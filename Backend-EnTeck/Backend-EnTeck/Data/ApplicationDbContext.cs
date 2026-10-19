@@ -12,6 +12,7 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<User> Users { get; set; } = null!;
     public DbSet<SolicitudServicio> SolicitudesServicio { get; set; } = null!;
+    public DbSet<EncuestaSatisfaccion> EncuestasSatisfaccion { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
