@@ -70,6 +70,6 @@ namespace Backend_EnTeck.Controllers
         public int TotalOrdenesAtendidas { get; set; }
         public int OrdenesEntregadas { get; set; }
         public decimal TotalVentasIngresos { get; set; }
-        public string TelefonoAdministrador { get; set; }
+        public string TelefonoAdministrador { get; set; } = string.Empty;
     }
 }
