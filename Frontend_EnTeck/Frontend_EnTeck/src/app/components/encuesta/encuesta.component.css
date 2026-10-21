@@ -1,0 +1,58 @@
+.encuesta-card {
+  padding: 1.5rem;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  text-align: center;
+  max-width: 450px;
+  margin: 1rem auto;
+}
+
+.stars-rating {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.star {
+  font-size: 2.2rem;
+  color: #ddd;
+  cursor: pointer;
+  transition: transform 0.2s, color 0.2s;
+}
+
+.star:hover, .star.filled {
+  color: #ffb400;
+  transform: scale(1.1);
+}
+
+textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  resize: none;
+  font-family: inherit;
+}
+
+.btn-submit {
+  margin-top: 1rem;
+  padding: 0.6rem 1.5rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-submit:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.gracias-msg h4 {
+  color: #28a745;
+  margin-bottom: 0.5rem;
+}

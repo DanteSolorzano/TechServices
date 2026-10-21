@@ -1,0 +1,35 @@
+<div class="encuesta-card">
+  @if (!enviado) {
+    <h3>⭐ Encuesta de Satisfacción</h3>
+    <p>¿Qué tal te pareció la atención y reparación de tu dispositivo?</p>
+
+    <div class="stars-rating">
+      @for (star of [1, 2, 3, 4, 5]; track star) {
+        <span 
+          class="star" 
+          [class.filled]="star <= calificacionSeleccionada"
+          (click)="seleccionarEstrella(star)">
+          ★
+        </span>
+      }
+    </div>
+
+    <textarea 
+      [(ngModel)]="comentarios" 
+      placeholder="Escribe tus comentarios u observaciones (opcional)..." 
+      rows="3">
+    </textarea>
+
+    <button 
+      class="btn-submit" 
+      [disabled]="calificacionSeleccionada === 0"
+      (click)="enviarEvaluacion()">
+      Enviar Opinión
+    </button>
+  } @else {
+    <div class="gracias-msg">
+      🎉 <h4>¡Gracias por tu evaluación!</h4>
+      <p>Tus comentarios nos ayudan a seguir mejorando en EnTeck.</p>
+    </div>
+  }
+</div>
