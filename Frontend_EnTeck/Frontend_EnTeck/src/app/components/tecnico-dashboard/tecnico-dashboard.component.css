@@ -6,20 +6,6 @@
   box-sizing: border-box;
 }
 
-.tech-header {
-  background-color: #1a1a1a;
-  color: #ffffff;
-  padding: 1rem 1.5rem;
-  border-radius: 8px;
-  margin-bottom: 1.5rem;
-}
-
-.tech-title {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-}
-
 .grid-orders {
   display: flex;
   flex-direction: column;

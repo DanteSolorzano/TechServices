@@ -1,7 +1,7 @@
-import { Component, signal, inject, OnInit, ChangeDetectionStrategy, output } from '@angular/core';
+import { Component, signal, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router'; // <-- Agregamos Router
 import { AuthService } from '../../services/auth.service';
 import { SignupRequest, LoginRequest, AuthResponse } from '../../models/user.model';
 
@@ -15,8 +15,7 @@ import { SignupRequest, LoginRequest, AuthResponse } from '../../models/user.mod
 })
 export class AuthComponent implements OnInit {
   private authService = inject(AuthService);
-
-  loginSuccess = output<void>();
+  private router = inject(Router); // <-- Inyectamos Router
 
   isRegistering = signal(false);
   isLoading = signal(false);
@@ -60,10 +59,7 @@ export class AuthComponent implements OnInit {
       next: (response: AuthResponse) => {
         this.authService.setCurrentUser(response);
         this.isLoading.set(false);
-        this.isRegistering.set(false);
-        this.authData = { email: '', password: '' };
-        this.registerData = { name: '', phone: '', address: '' };
-        this.loginSuccess.emit();
+        this.redirigirPorRol(response); // <-- Redirigimos
       },
       error: (error) => {
         this.isLoading.set(false);
@@ -82,13 +78,26 @@ export class AuthComponent implements OnInit {
       next: (response: AuthResponse) => {
         this.authService.setCurrentUser(response);
         this.isLoading.set(false);
-        this.authData = { email: '', password: '' };
-        this.loginSuccess.emit();
+        this.redirigirPorRol(response); // <-- Redirigimos
       },
       error: (error) => {
         this.isLoading.set(false);
         this.errorMessage.set('Correo o contraseña incorrectos.');
       }
     });
+  }
+
+  // NUEVA FUNCIÓN PARA REDIRIGIR
+  private redirigirPorRol(user: AuthResponse) {
+    const esAdmin = user.esAdmin === true || Number(user.esAdmin) === 1;
+    const esTecnico = user.rol === 'tecnico' || (user as any).nivelPrivilegio === 1;
+
+    if (esAdmin) {
+      this.router.navigate(['/admin']);
+    } else if (esTecnico) {
+      this.router.navigate(['/tecnico']);
+    } else {
+      this.router.navigate(['/solicitud']); // O a la ruta que prefieras para el cliente
+    }
   }
 }

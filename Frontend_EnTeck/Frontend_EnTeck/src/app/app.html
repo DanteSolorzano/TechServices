@@ -1,143 +1,34 @@
-﻿<!-- 1. VISTA DE TRACKING PÚBLICO (US-015) -->
-@if (currentView() === 'tracking') {
-  <div style="background-color: #f4f7f6; min-height: 100vh; padding: 2rem 1rem;">
-    <!-- Encabezado del Tracking Público -->
-    <div style="display: flex; justify-content: space-between; align-items: center; max-width: 1000px; margin: 0 auto 2rem auto; background: #1a1a1a; padding: 1rem 2rem; border-radius: 12px; border-bottom: 2px solid #00e5ff; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-      <div style="display:flex; align-items:center; gap:10px; cursor: pointer;" (click)="setView('tracking')">
-        <span style="font-size: 24px;">🔧</span>
-        <h2 style="margin: 0; color: #fff; font-family: 'Segoe UI', sans-serif; letter-spacing: 1px; font-size: 22px;">EnTeck<span style="color:#00e5ff">.</span></h2>
-      </div>
-
-      <div>
-        @if (!currentClient()) {
-          <button 
-            (click)="setView('auth')" 
-            style="padding: 10px 20px; background: #00e5ff; color: #1a1a1a; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; transition: all 0.2s;">
-            Iniciar Sesión
-          </button>
-        } @else {
-          <button 
-            (click)="logout()" 
-            style="padding: 8px 15px; border: 1px solid #ff4444; color: #ff4444; background: transparent; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;">
-            Cerrar Sesión
-          </button>
-        }
-      </div>
-    </div>
-
-    <!-- Componente público de consulta de estado de reparaciones -->
-    <app-tracking></app-tracking>
-  </div>
-}
-
-<!-- 2. VISTA DE AUTENTICACIÓN / LOGIN -->
-@if (currentView() === 'auth') {
-  <app-auth (loginSuccess)="onLoginSuccess()"></app-auth>
-}
-
-<!-- 3. VISTA DEL PANEL DE ADMINISTRACIÓN MODULAR (US-016) -->
-@if (currentView() === 'admin') {
-  <div style="background-color: #f4f7f6; min-height: 100vh;">
-    <div style="background: #1a1a1a; border-bottom: 2px solid #00e5ff; padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between;">
-      <div style="display:flex; align-items:center; gap:10px;">
-        <span style="font-size: 24px;">🛡️</span>
-        <h2 style="margin: 0; color: #fff; font-family: 'Segoe UI', sans-serif; letter-spacing: 1px; font-size: 20px;">
-          EnTeck <span style="color:#00e5ff">| Panel Administrador</span>
-        </h2>
-      </div>
-      <button 
-        (click)="logout()" 
-        style="padding: 8px 15px; border: 1px solid #ff4444; color: #ff4444; background: transparent; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;">
-        Cerrar Sesión
-      </button>
-    </div>
-
-    <app-admin-dashboard (closeAdmin)="logout()"></app-admin-dashboard>
-  </div>
-}
-
-<!-- 4. VISTA DEL PANEL DE TÉCNICO EXCLUSIVO -->
-@if (currentView() === 'tecnico') {
-  <div style="background-color: #f4f7f6; min-height: 100vh;">
-    <!-- Encabezado Superior del Técnico -->
-    <div style="background: #1a1a1a; border-bottom: 2px solid #00e5ff; padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100;">
-      <div style="display:flex; align-items:center; gap:10px;">
-        <span style="font-size: 24px;">🛠️</span>
-        <h2 style="margin: 0; color: #fff; font-family: 'Segoe UI', sans-serif; letter-spacing: 1px; font-size: 20px;">
-          EnTeck <span style="color:#00e5ff">| Panel de Técnico</span>
-        </h2>
-      </div>
-
-      <div style="display: flex; align-items: center; gap: 1rem;">
-        <span style="color: #00e5ff; font-size: 14px; font-weight: 500;">
-          Técnico: <strong>{{ currentClient()?.nombre || currentClient()?.correo }}</strong>
-        </span>
-        <button 
-          (click)="logout()" 
-          style="padding: 8px 15px; border: 1px solid #ff4444; color: #ff4444; background: transparent; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;">
-          Cerrar Sesión
-        </button>
-      </div>
-    </div>
-
-    <!-- Componente Dashboard del Técnico -->
-    <app-tecnico-dashboard></app-tecnico-dashboard>
-  </div>
-}
-
-<!-- 5. VISTA DE CLIENTE AUTENTICADO (MENÚ HOME) -->
-@if (currentView() === 'home' && currentClient()) {
-  <!-- Barra de Navegación Superior -->
-  <div style="background: #1a1a1a; border-bottom: 2px solid #00e5ff; padding: 1rem 2rem; display: flex; align-items: center; gap: 1rem; position: sticky; top: 0; z-index: 100; justify-content: space-between; box-shadow: 0 4px 15px rgba(0, 229, 255, 0.1);">
-    <div style="display:flex; align-items:center; gap:15px;">
-      <div style="display:flex; align-items:center; gap:10px; cursor: pointer;" (click)="setView('home')">
-        <span style="font-size: 24px;">🔧</span>
-        <h2 style="margin: 0; color: #fff; font-family: 'Segoe UI', sans-serif; letter-spacing: 1px; font-size: 22px;">EnTeck<span style="color:#00e5ff">.</span></h2>
-      </div>
-      <button (click)="setView('home')" [style.color]="isViewActive('home') ? '#00e5ff' : '#ccc'" style="background:none; border:none; cursor:pointer; font-weight:bold; font-size:18px; padding: 0;">🏠</button>
-    </div>
-
-    <div style="flex-grow: 1; text-align: center;">
-      <span style="color: #00e5ff; font-size: 14px; font-weight: 500;">Bienvenido, {{ currentClient()?.nombre || currentClient()?.correo }}</span>
-    </div>
-
-    <div style="display: flex; align-items: center; gap: 1rem;">
-      <button (click)="logout()" style="padding: 8px 15px; border: 1px solid #ff4444; color: #ff4444; background: transparent; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;">Cerrar Sesión</button>
-    </div>
+﻿<nav class="global-navbar">
+  <div class="nav-logo" routerLink="/">
+    <span style="font-size: 24px;">🔧</span>
+    <h2>EnTeck<span style="color:#667eea">.</span></h2>
   </div>
 
-  <!-- Menú de Opciones del Cliente -->
-  <div style="background-color: #f4f7f6; min-height: 100vh; padding: 3rem 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-    <h1 style="text-align: center; margin-bottom: 1rem; color: #333;">Bienvenido a EnTeck</h1>
-    <p style="text-align: center; margin-bottom: 3rem; color: #666; max-width: 600px;">Selecciona qué deseas hacer</p>
+  <div class="nav-links">
+    <a routerLink="/tracking" routerLinkActive="active-link">Rastreo</a>
     
-    <div style="display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap; max-width: 1000px;">
-      <!-- Opción 1: Nueva Orden de Servicio -->
-      <button 
-        (click)="setView('service-order')"
-        style="padding: 2rem; border: none; border-radius: 16px; background: linear-gradient(135deg, #007bff, #0056b3); color: white; cursor: pointer; width: 250px; display: flex; flex-direction: column; align-items: center; gap: 1rem; box-shadow: 0 4px 15px rgba(0,123,255,0.3); transition: transform 0.2s;">
-        <span style="font-size: 3rem;">📋</span>
-        <div>
-          <h3 style="margin: 0; font-size: 18px;">Nueva Orden de Servicio</h3>
-          <p style="margin: 0.5rem 0 0 0; font-size: 14px; opacity: 0.9;">Solicitar reparación</p>
-        </div>
-      </button>
-
-      <!-- Opción 2: Consultar Órdenes -->
-      <button 
-        (click)="setView('tracking')"
-        style="padding: 2rem; border: none; border-radius: 16px; background: linear-gradient(135deg, #28a745, #1e7e34); color: white; cursor: pointer; width: 250px; display: flex; flex-direction: column; align-items: center; gap: 1rem; box-shadow: 0 4px 15px rgba(40,167,69,0.3); transition: transform 0.2s;">
-        <span style="font-size: 3rem;">📱</span>
-        <div>
-          <h3 style="margin: 0; font-size: 18px;">Mis Órdenes</h3>
-          <p style="margin: 0.5rem 0 0 0; font-size: 14px; opacity: 0.9;">Ver estado de reparaciones</p>
-        </div>
-      </button>
-    </div>
+    @if (!authService.currentUser()) {
+      <a routerLink="/auth" class="btn-login">Iniciar Sesión</a>
+    } @else {
+      
+      <!-- Si es Admin -->
+      @if (authService.currentUser()?.esAdmin) {
+        <a routerLink="/admin" routerLinkActive="active-link">Panel Admin</a>
+      } 
+      <!-- Si es Técnico -->
+      @else if (esTecnico(authService.currentUser())) {
+        <a routerLink="/tecnico" routerLinkActive="active-link">Panel Técnico</a>
+      } 
+      <!-- Si es Cliente -->
+      @else {
+        <a routerLink="/solicitud" routerLinkActive="active-link">Mis Solicitudes</a>
+      }
+      
+      <button (click)="logout()" class="btn-logout">Cerrar Sesión</button>
+    }
   </div>
-}
+</nav>
 
-<!-- 6. VISTA DE SOLICITUD DE SERVICIO -->
-@if (currentView() === 'service-order') {
-  <app-service-request></app-service-request>
-}
+<main class="main-content">
+  <router-outlet></router-outlet>
+</main>
