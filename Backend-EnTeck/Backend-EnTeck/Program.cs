@@ -42,7 +42,7 @@ app.UseCors("AllowAll");
 app.MapControllers();
 
 // ----------------------------------------------------
-// AUTH ENDPOINTS (LÓGICA DINÁMICA SIN HARDCODING)
+// AUTH ENDPOINTS
 // ----------------------------------------------------
 
 app.MapPost("/api/auth/signup", async (SignupRequest request, ApplicationDbContext db) =>
@@ -68,7 +68,7 @@ app.MapPost("/api/auth/signup", async (SignupRequest request, ApplicationDbConte
         Correo = request.Correo,
         Contrasena = request.Contrasena,
         Direccion = request.Direccion,
-        EsAdmin = false // Asignación booleana corregida para C#
+        NivelPrivilegio = 2 // 2 = cliente (registro público)
     };
 
     db.Users.Add(user);
@@ -80,7 +80,9 @@ app.MapPost("/api/auth/signup", async (SignupRequest request, ApplicationDbConte
         correo = user.Correo, 
         nombre = user.Nombre,
         telefono = user.Telefono,
-        esAdmin = user.EsAdmin 
+        nivelPrivilegio = user.NivelPrivilegio,
+        esAdmin = user.EsAdmin,
+        rol = user.Rol
     });
 })
 .WithName("Signup")
@@ -99,14 +101,15 @@ app.MapPost("/api/auth/login", async (SignupRequest request, ApplicationDbContex
         return Results.Unauthorized();
     }
 
-    // RETORNO COMPLETO Y DINÁMICO DESDE SQL SERVER
     return Results.Ok(new 
     { 
         id = user.Id,
         nombre = user.Nombre,
         correo = user.Correo,
         telefono = user.Telefono,
-        esAdmin = user.EsAdmin 
+        nivelPrivilegio = user.NivelPrivilegio,
+        esAdmin = user.EsAdmin,
+        rol = user.Rol
     });
 })
 .WithName("Login")
@@ -126,7 +129,9 @@ app.MapGet("/api/clientes", async (ApplicationDbContext db) =>
         telefono = u.Telefono,
         correo = u.Correo,
         direccion = u.Direccion,
-        esAdmin = u.EsAdmin
+        nivelPrivilegio = u.NivelPrivilegio,
+        esAdmin = u.EsAdmin,
+        rol = u.Rol
     }).ToListAsync();
 
     return Results.Ok(clientes);
@@ -143,7 +148,9 @@ app.MapGet("/api/clients", async (ApplicationDbContext db) =>
         telefono = u.Telefono,
         correo = u.Correo,
         direccion = u.Direccion,
-        esAdmin = u.EsAdmin
+        nivelPrivilegio = u.NivelPrivilegio,
+        esAdmin = u.EsAdmin,
+        rol = u.Rol
     }).ToListAsync();
 
     return Results.Ok(clientes);
@@ -163,7 +170,9 @@ app.MapGet("/api/clients/{id}", async (int id, ApplicationDbContext db) =>
         telefono = cliente.Telefono,
         correo = cliente.Correo,
         direccion = cliente.Direccion,
-        esAdmin = cliente.EsAdmin
+        nivelPrivilegio = cliente.NivelPrivilegio,
+        esAdmin = cliente.EsAdmin,
+        rol = cliente.Rol
     });
 })
 .WithName("GetClientInfo")
@@ -181,7 +190,9 @@ app.MapGet("/api/clientes/{id}", async (int id, ApplicationDbContext db) =>
         telefono = cliente.Telefono,
         correo = cliente.Correo,
         direccion = cliente.Direccion,
-        esAdmin = cliente.EsAdmin
+        nivelPrivilegio = cliente.NivelPrivilegio,
+        esAdmin = cliente.EsAdmin,
+        rol = cliente.Rol
     });
 })
 .WithName("GetClienteInfoEs")
@@ -340,28 +351,4 @@ app.MapPost("/api/service-order", async (ServiceOrderRequest request, Applicatio
 .WithName("CreateServiceOrder")
 .WithOpenApi();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
-
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

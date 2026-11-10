@@ -26,30 +26,8 @@ namespace Backend_EnTeck.Controllers
         [HttpGet]
         public async Task<IActionResult> GetClientes()
         {
-            try
-            {
-                var usuarios = await _context.Users.ToListAsync();
-                return Ok(usuarios);
-            }
-            catch
-            {
-                // Fallback directo por si la columna rol o algún dato causa conflicto de mapeo
-                var usuariosRaw = await _context.Database
-                    .SqlQueryRaw<User>(@"
-                        SELECT 
-                            [c].[id] AS [Id], 
-                            [c].[nombre] AS [Nombre], 
-                            [c].[correo] AS [Correo], 
-                            [c].[telefono] AS [Telefono], 
-                            [c].[contrasena] AS [Contrasena], 
-                            ISNULL([c].[direccion], '') AS [Direccion], 
-                            [c].[esAdmin] AS [EsAdmin],
-                            ISNULL([c].[rol], CASE WHEN [c].[esAdmin] = 1 THEN 'admin' ELSE 'cliente' END) AS [Rol]
-                        FROM [Clientes] AS [c]")
-                    .ToListAsync();
-
-                return Ok(usuariosRaw);
-            }
+            var usuarios = await _context.Users.ToListAsync();
+            return Ok(usuarios);
         }
 
         // POST: api/clientes/login
@@ -101,9 +79,10 @@ namespace Backend_EnTeck.Controllers
 
             try
             {
-                if (string.IsNullOrWhiteSpace(usuario.Rol))
+                // Validar nivelPrivilegio: 0 = admin, 1 = tecnico, 2 = cliente
+                if (usuario.NivelPrivilegio < 0 || usuario.NivelPrivilegio > 2)
                 {
-                    usuario.Rol = usuario.EsAdmin ? "admin" : "cliente";
+                    usuario.NivelPrivilegio = 2; // Por defecto: cliente
                 }
 
                 if (string.IsNullOrWhiteSpace(usuario.Contrasena))
