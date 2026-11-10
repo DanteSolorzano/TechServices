@@ -16,4 +16,4 @@ export const routes: Routes = [
 
   // Regla Wildcard (comodín **): redirige cualquier ruta desconocida a tracking
   { path: '**', redirectTo: 'tracking' }
-];
+]

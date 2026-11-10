@@ -1,0 +1,85 @@
+<div class="tracking-container">
+  <div class="tracking-content">
+    <h2>📋 Rastreo Público de Orden de Servicio</h2>
+    <p class="subtitle">Consulta el estado, avance y fecha estimada de entrega de tu equipo ingresando tu número de folio.</p>
+
+    <!-- Search Bar -->
+    <div class="search-box">
+      <input 
+        type="text" 
+        [(ngModel)]="searchId" 
+        placeholder="Ejemplo: 2 o ORD-101" 
+        (keyup.enter)="buscarOrden()"
+        [disabled]="loading()"
+      />
+      <button (click)="buscarOrden()" [disabled]="loading()">
+        🔍 Consultar
+      </button>
+    </div>
+
+    <!-- Loading State -->
+    @if (loading()) {
+      <div class="loading">
+        <span class="spinner"></span> Buscando información de tu equipo...
+      </div>
+    }
+
+    <!-- Error State -->
+    @if (error()) {
+      <div class="error-msg">
+        ❌ {{ error() }}
+      </div>
+    }
+
+    <!-- Order Result Card -->
+    @if (!loading() && order()) {
+      <div class="orders-list">
+        <div class="order-card" [ngClass]="'status-' + sanitizeClass(order()!.estado)">
+          <div class="order-header">
+            <div class="order-info">
+              <h3>{{ order()!.marca || 'Equipo' }} {{ order()!.modelo || '' }}</h3>
+              <p class="problem"><strong>Problema reportado:</strong> {{ order()!.problema }}</p>
+            </div>
+            <div class="order-id">Orden #{{ order()!.id }}</div>
+          </div>
+
+          <div class="order-details">
+            <div class="detail-row">
+              <span class="label">Estado Actual:</span>
+              <span class="status-badge" [ngClass]="'badge-' + sanitizeClass(order()!.estado)">
+                {{ getStatusText(order()!.estado) }}
+              </span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Fecha de Recepción:</span>
+              <span>{{ formatDate(order()!.fechaRecibido) }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Fecha Estimada (ETA):</span>
+              <span class="eta-highlight">{{ formatDate(order()!.eta) }}</span>
+            </div>
+            @if (order()!.nombreTecnico) {
+              <div class="detail-row">
+                <span class="label">Técnico Asignado:</span>
+                <span>{{ order()!.nombreTecnico }}</span>
+              </div>
+            }
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="progress-container">
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width]="getProgress(order()!.estado) + '%'"></div>
+            </div>
+            <span class="progress-text">{{ getProgress(order()!.estado) }}% Completado</span>
+          </div>
+        </div>
+      </div>
+    } @else if (!loading() && searched() && !order() && !error()) {
+      <div class="no-orders">
+        <span style="font-size: 40px;">📭</span>
+        <p>No se encontró ninguna orden de servicio registrada con el folio especificado.</p>
+      </div>
+    }
+  </div>
+</div>

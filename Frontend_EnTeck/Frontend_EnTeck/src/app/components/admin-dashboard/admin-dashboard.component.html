@@ -1,349 +1,346 @@
-<div class="admin-overlay" (click)="close()">
-  <div class="admin-panel" (click)="$event.stopPropagation()">
+<div class="admin-container">
+  
+  <!-- Header -->
+  <div class="admin-header">
+    <h2>🛠️ Panel de Administración EnTeck</h2>
+  </div>
+
+  <!-- Contenido -->
+  <div class="admin-content">
     
-    <!-- Header -->
-    <div class="admin-header">
-      <h2>🛠️ Panel de Administración EnTeck</h2>
-      <button class="close-btn" (click)="close()">✕</button>
+    <!-- Navegación por Pestañas -->
+    <div class="tabs-nav">
+      <button class="tab-btn" [class.active]="activeTab() === 'inventario'" (click)="activeTab.set('inventario')">
+        📦 Inventario y Servicios
+      </button>
+      <button class="tab-btn" [class.active]="activeTab() === 'reparto'" (click)="activeTab.set('reparto')">
+        📋 Reparto de Órdenes (US-011)
+      </button>
+      <button class="tab-btn" [class.active]="activeTab() === 'usuarios'" (click)="activeTab.set('usuarios')">
+        👥 Gestión de Usuarios
+      </button>
+      <button class="tab-btn" [class.active]="activeTab() === 'reportes'" (click)="activeTab.set('reportes')">
+        📊 Métricas y Reportes (US-016)
+      </button>
     </div>
 
-    <!-- Contenido -->
-    <div class="admin-content">
-      
-      <!-- Navegación por Pestañas -->
-      <div class="tabs-nav">
-        <button class="tab-btn" [class.active]="activeTab() === 'inventario'" (click)="activeTab.set('inventario')">
-          📦 Inventario y Servicios
-        </button>
-        <button class="tab-btn" [class.active]="activeTab() === 'reparto'" (click)="activeTab.set('reparto')">
-          📋 Reparto de Órdenes (US-011)
-        </button>
-        <button class="tab-btn" [class.active]="activeTab() === 'usuarios'" (click)="activeTab.set('usuarios')">
-          👥 Gestión de Usuarios
-        </button>
-        <button class="tab-btn" [class.active]="activeTab() === 'reportes'" (click)="activeTab.set('reportes')">
-          📊 Métricas y Reportes (US-016)
-        </button>
-      </div>
-
-      <!-- SECCIÓN 1: INVENTARIO -->
-      @if (activeTab() === 'inventario') {
-        @if (isEditing()) {
-          <div class="edit-form">
-            <h3>{{ currentItem().id === 0 ? 'Nuevo Producto/Servicio' : 'Editar: ' + currentItem().nombre }}</h3>
+    <!-- SECCIÓN 1: INVENTARIO -->
+    @if (activeTab() === 'inventario') {
+      @if (isEditing()) {
+        <div class="edit-form">
+          <h3>{{ currentItem().id === 0 ? 'Nuevo Producto/Servicio' : 'Editar: ' + currentItem().nombre }}</h3>
+          
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Nombre</label>
+              <input [(ngModel)]="currentItem().nombre" placeholder="Ej: Funda Uso Rudo">
+            </div>
             
-            <div class="form-grid">
-              <div class="form-group">
-                <label>Nombre</label>
-                <input [(ngModel)]="currentItem().nombre" placeholder="Ej: Funda Uso Rudo">
-              </div>
-              
-              <div class="form-group">
-                <label>Categoría</label>
-                <select [(ngModel)]="currentItem().categoria">
-                  <option value="Servicios">Servicios</option>
-                  <option value="Fundas">Fundas</option>
-                  <option value="Cargadores">Cargadores</option>
-                  <option value="Refacciones">Refacciones</option>
-                  <option value="Audio">Audio</option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label>Modelo Compatible</label>
-                <input [(ngModel)]="currentItem().modeloCompatible" placeholder="Ej: iPhone 13, Universal...">
-              </div>
-
-              <div class="form-group">
-                <label>Precio ($)</label>
-                <input type="number" [(ngModel)]="currentItem().precio">
-              </div>
-
-              <div class="form-group">
-                <label>Stock</label>
-                <input type="number" [(ngModel)]="currentItem().stock" [disabled]="currentItem().esServicio">
-              </div>
-
-              <div class="form-group" style="flex-direction: row; align-items: center; gap: 10px; margin-top: 20px;">
-                <input type="checkbox" [(ngModel)]="currentItem().esServicio" id="chkServicio">
-                <label for="chkServicio" style="margin:0; cursor:pointer;">¿Es un Servicio? (Mano de obra)</label>
-              </div>
-              
-              <div class="form-group" style="grid-column: 1 / -1;">
-                <label>Descripción</label>
-                <textarea [(ngModel)]="currentItem().descripcion" rows="3"></textarea>
-              </div>
-
-              <div class="form-group" style="grid-column: 1 / -1;">
-                <label>URL Imagen</label>
-                <input [(ngModel)]="currentItem().imagenUrl" placeholder="https://...">
-              </div>
+            <div class="form-group">
+              <label>Categoría</label>
+              <select [(ngModel)]="currentItem().categoria">
+                <option value="Servicios">Servicios</option>
+                <option value="Fundas">Fundas</option>
+                <option value="Cargadores">Cargadores</option>
+                <option value="Refacciones">Refacciones</option>
+                <option value="Audio">Audio</option>
+              </select>
             </div>
 
-            <div class="actions">
-              <button class="btn btn-cancel" (click)="cancelEdit()">Cancelar</button>
-              <button class="btn btn-primary" (click)="saveItem()">Guardar Cambios</button>
+            <div class="form-group">
+              <label>Modelo Compatible</label>
+              <input [(ngModel)]="currentItem().modeloCompatible" placeholder="Ej: iPhone 13, Universal...">
+            </div>
+
+            <div class="form-group">
+              <label>Precio ($)</label>
+              <input type="number" [(ngModel)]="currentItem().precio">
+            </div>
+
+            <div class="form-group">
+              <label>Stock</label>
+              <input type="number" [(ngModel)]="currentItem().stock" [disabled]="currentItem().esServicio">
+            </div>
+
+            <div class="form-group" style="flex-direction: row; align-items: center; gap: 10px; margin-top: 20px;">
+              <input type="checkbox" [(ngModel)]="currentItem().esServicio" id="chkServicio">
+              <label for="chkServicio" style="margin:0; cursor:pointer;">¿Es un Servicio? (Mano de obra)</label>
+            </div>
+            
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label>Descripción</label>
+              <textarea [(ngModel)]="currentItem().descripcion" rows="3"></textarea>
+            </div>
+
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label>URL Imagen</label>
+              <input [(ngModel)]="currentItem().imagenUrl" placeholder="https://...">
             </div>
           </div>
-        } @else {
-          <button class="btn btn-add" (click)="startAdd()">+ Nuevo Item</button>
 
-          <table>
-            <thead>
-              <tr>
-                <th>Producto / Servicio</th>
-                <th>Categoría</th>
-                <th>Modelo</th>
-                <th>Precio</th>
-                <th>Stock</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (item of items(); track item.id) {
-                <tr>
-                  <td>
-                    <strong>{{ item.nombre }}</strong>
-                    @if(item.esServicio) { <span style="font-size: 10px; color: #007bff; border: 1px solid #007bff; padding: 2px 4px; border-radius: 4px; margin-left: 5px;">SERVICIO</span> }
-                  </td>
-                  <td>{{ item.categoria }}</td>
-                  <td>{{ item.modeloCompatible }}</td>
-                  <td>${{ item.precio }}</td>
-                  <td>
-                    @if (item.esServicio) {
-                      <span>∞</span>
-                    } @else {
-                      <span class="stock-badge" [class.in-stock]="item.stock > 5" [class.low-stock]="item.stock <= 5 && item.stock > 0" [class.out-stock]="item.stock === 0">
-                        {{ item.stock }}
-                      </span>
-                    }
-                  </td>
-                  <td>
-                    <button class="btn btn-edit" (click)="startEdit(item)">✏️</button>
-                    <button class="btn btn-delete" (click)="deleteItem(item.id)">🗑️</button>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        }
-      }
-
-      <!-- SECCIÓN 2: REPARTO DE ÓRDENES A TÉCNICOS (US-011) -->
-      @if (activeTab() === 'reparto') {
-        <div style="margin-bottom: 15px;">
-          <h3>📋 Solicitudes Pendientes de Asignación</h3>
-          <p style="font-size: 13px; color: #666;">Selecciona un técnico para asignarle la orden de reparación.</p>
+          <div class="actions">
+            <button class="btn btn-cancel" (click)="cancelEdit()">Cancelar</button>
+            <button class="btn btn-primary" (click)="saveItem()">Guardar Cambios</button>
+          </div>
         </div>
+      } @else {
+        <button class="btn btn-add" (click)="startAdd()">+ Nuevo Item</button>
 
         <table>
           <thead>
             <tr>
-              <th>ID / Folio</th>
-              <th>Dispositivo</th>
-              <th>Falla Reportada</th>
-              <th>Estado</th>
-              <th>Técnico Asignado</th>
-              <th>Asignar Técnico</th>
+              <th>Producto / Servicio</th>
+              <th>Categoría</th>
+              <th>Modelo</th>
+              <th>Precio</th>
+              <th>Stock</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
-            @for (orden of ordenesPendientes(); track orden.id) {
+            @for (item of items(); track item.id) {
               <tr>
-                <td><strong>#{{ orden.id }}</strong></td>
-                <td>{{ orden.marca }} {{ orden.modelo }}</td>
-                <td>{{ orden.problema }}</td>
                 <td>
-                  <span class="stock-badge low-stock">
-                    {{ orden.estado || 'Recibido' }}
-                  </span>
+                  <strong>{{ item.nombre }}</strong>
+                  @if(item.esServicio) { <span style="font-size: 10px; color: #007bff; border: 1px solid #007bff; padding: 2px 4px; border-radius: 4px; margin-left: 5px;">SERVICIO</span> }
+                </td>
+                <td>{{ item.categoria }}</td>
+                <td>{{ item.modeloCompatible }}</td>
+                <td>${{ item.precio }}</td>
+                <td>
+                  @if (item.esServicio) {
+                    <span>∞</span>
+                  } @else {
+                    <span class="stock-badge" [class.in-stock]="item.stock > 5" [class.low-stock]="item.stock <= 5 && item.stock > 0" [class.out-stock]="item.stock === 0">
+                      {{ item.stock }}
+                    </span>
+                  }
                 </td>
                 <td>
-                  <strong>{{ orden.nombreTecnico || 'Sin Asignar' }}</strong>
-                </td>
-                <td>
-                  <select class="select-tec" (change)="asignarTecnico(orden.id, $event)">
-                    <option value="" [selected]="!orden.idTecnico">-- Seleccionar Técnico --</option>
-                    @for (tec of tecnicos(); track tec.id) {
-                      <option [value]="tec.id" [selected]="orden.idTecnico === tec.id">
-                        👤 {{ tec.nombre }}
-                      </option>
-                    }
-                  </select>
-                </td>
-              </tr>
-            } @empty {
-              <tr>
-                <td colspan="6" style="text-align: center; color: #888; padding: 2rem;">
-                  🎉 No hay órdenes pendientes de asignación en este momento.
+                  <button class="btn btn-edit" (click)="startEdit(item)">✏️</button>
+                  <button class="btn btn-delete" (click)="deleteItem(item.id)">🗑️</button>
                 </td>
               </tr>
             }
           </tbody>
         </table>
       }
+    }
 
-      <!-- SECCIÓN 3: GESTIÓN DE USUARIOS CON TRES ROLES -->
-      @if (activeTab() === 'usuarios') {
-        <div class="edit-form" style="margin-bottom: 20px;">
-          <h3>➕ Registrar Nuevo Usuario</h3>
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Nombre Completo</label>
-              <input [(ngModel)]="nuevoUsuario.nombre" placeholder="Ej: Juan Pérez">
-            </div>
+    <!-- SECCIÓN 2: REPARTO DE ÓRDENES A TÉCNICOS (US-011) -->
+    @if (activeTab() === 'reparto') {
+      <div style="margin-bottom: 15px;">
+        <h3>📋 Solicitudes Pendientes de Asignación</h3>
+        <p style="font-size: 13px; color: #666;">Selecciona un técnico para asignarle la orden de reparación.</p>
+      </div>
 
-            <div class="form-group">
-              <label>Correo Electrónico</label>
-              <input [(ngModel)]="nuevoUsuario.correo" type="email" placeholder="juan@example.com">
-            </div>
+      <table>
+        <thead>
+          <tr>
+            <th>ID / Folio</th>
+            <th>Dispositivo</th>
+            <th>Falla Reportada</th>
+            <th>Estado</th>
+            <th>Técnico Asignado</th>
+            <th>Asignar Técnico</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (orden of ordenesPendientes(); track orden.id) {
+            <tr>
+              <td><strong>#{{ orden.id }}</strong></td>
+              <td>{{ orden.marca }} {{ orden.modelo }}</td>
+              <td>{{ orden.problema }}</td>
+              <td>
+                <span class="stock-badge low-stock">
+                  {{ orden.estado || 'Recibido' }}
+                </span>
+              </td>
+              <td>
+                <strong>{{ orden.nombreTecnico || 'Sin Asignar' }}</strong>
+              </td>
+              <td>
+                <select class="select-tec" (change)="asignarTecnico(orden.id, $event)">
+                  <option value="" [selected]="!orden.idTecnico">-- Seleccionar Técnico --</option>
+                  @for (tec of tecnicos(); track tec.id) {
+                    <option [value]="tec.id" [selected]="orden.idTecnico === tec.id">
+                      👤 {{ tec.nombre }}
+                    </option>
+                  }
+                </select>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" style="text-align: center; color: #888; padding: 2rem;">
+                🎉 No hay órdenes pendientes de asignación en este momento.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
 
-            <div class="form-group">
-              <label>Contraseña</label>
-              <input [(ngModel)]="nuevoUsuario.contrasena" type="password" placeholder="••••••••">
-            </div>
-
-            <div class="form-group">
-              <label>Teléfono</label>
-              <input [(ngModel)]="nuevoUsuario.telefono" placeholder="Ej: 4731234567">
-            </div>
-
-            <div class="form-group">
-              <label>Dirección</label>
-              <input [(ngModel)]="nuevoUsuario.direccion" placeholder="Ej: Calle Principal #123">
-            </div>
-
-            <div class="form-group">
-              <label>Rol de Usuario</label>
-              <select [(ngModel)]="nuevoUsuario.rolSeleccionado">
-                <option value="cliente">👤 Cliente</option>
-                <option value="tecnico">🛠️ Técnico</option>
-                <option value="admin">🛡️ Administrador</option>
-              </select>
-            </div>
+    <!-- SECCIÓN 3: GESTIÓN DE USUARIOS CON TRES ROLES -->
+    @if (activeTab() === 'usuarios') {
+      <div class="edit-form" style="margin-bottom: 20px;">
+        <h3>➕ Registrar Nuevo Usuario</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Nombre Completo</label>
+            <input [(ngModel)]="nuevoUsuario.nombre" placeholder="Ej: Juan Pérez">
           </div>
 
-          <div class="actions">
-            <button class="btn btn-primary" (click)="registrarUsuario()">Guardar Usuario</button>
+          <div class="form-group">
+            <label>Correo Electrónico</label>
+            <input [(ngModel)]="nuevoUsuario.correo" type="email" placeholder="juan@example.com">
+          </div>
+
+          <div class="form-group">
+            <label>Contraseña</label>
+            <input [(ngModel)]="nuevoUsuario.contrasena" type="password" placeholder="••••••••">
+          </div>
+
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input [(ngModel)]="nuevoUsuario.telefono" placeholder="Ej: 4731234567">
+          </div>
+
+          <div class="form-group">
+            <label>Dirección</label>
+            <input [(ngModel)]="nuevoUsuario.direccion" placeholder="Ej: Calle Principal #123">
+          </div>
+
+          <div class="form-group">
+            <label>Rol de Usuario</label>
+            <select [(ngModel)]="nuevoUsuario.rolSeleccionado">
+              <option value="cliente">👤 Cliente</option>
+              <option value="tecnico">🛠️ Técnico</option>
+              <option value="admin">🛡️ Administrador</option>
+            </select>
           </div>
         </div>
 
-        <div style="margin-top: 20px;">
-          <h3>📋 Lista de Usuarios Registrados</h3>
-          <table>
-            <thead>
+        <div class="actions">
+          <button class="btn btn-primary" (click)="registrarUsuario()">Guardar Usuario</button>
+        </div>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <h3>📋 Lista de Usuarios Registrados</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Correo</th>
+              <th>Teléfono</th>
+              <th>Tipo de Usuario</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (usr of usuarios(); track usr.id) {
+              @let infoRol = obtenerEtiquetaRol(usr);
               <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Correo</th>
-                <th>Teléfono</th>
-                <th>Tipo de Usuario</th>
+                <td><strong>#{{ usr.id }}</strong></td>
+                <td>{{ usr.nombre }}</td>
+                <td>{{ usr.correo }}</td>
+                <td>{{ usr.telefono }}</td>
+                <td>
+                  <span class="stock-badge" [ngClass]="infoRol.clase">
+                    {{ infoRol.texto }}
+                  </span>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              @for (usr of usuarios(); track usr.id) {
-                @let infoRol = obtenerEtiquetaRol(usr);
-                <tr>
-                  <td><strong>#{{ usr.id }}</strong></td>
-                  <td>{{ usr.nombre }}</td>
-                  <td>{{ usr.correo }}</td>
-                  <td>{{ usr.telefono }}</td>
-                  <td>
-                    <span class="stock-badge" [ngClass]="infoRol.clase">
-                      {{ infoRol.texto }}
-                    </span>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <!-- SECCIÓN 4: MÉTRICAS Y REPORTES DE RENDIMIENTO (US-016) -->
+    @if (activeTab() === 'reportes') {
+      <div style="margin-bottom: 15px;">
+        <h3>📊 Métricas y Reportes Operativos</h3>
+        <p style="font-size: 13px; color: #666;">Monitoreo general de rendimiento e indicadores por técnico.</p>
+      </div>
+
+      <!-- Barra de Filtros -->
+      <div class="filter-bar">
+        <div>
+          <label>Desde: </label>
+          <input type="date" [(ngModel)]="filtroFechaInicio" (change)="cargarReportes()">
+        </div>
+        <div>
+          <label>Hasta: </label>
+          <input type="date" [(ngModel)]="filtroFechaFin" (change)="cargarReportes()">
+        </div>
+        <button class="btn btn-cancel" style="font-size: 12px; padding: 6px 12px;" (click)="limpiarFiltrosFechas()">Limpiar Filtros</button>
+      </div>
+
+      @if (reporteRendimiento(); as rep) {
+        <!-- Tarjetas KPI -->
+        <div class="kpi-grid">
+          <div class="kpi-card" style="border-left-color: #007bff;">
+            <h4>Total Órdenes</h4>
+            <div class="number">{{ rep.totalOrdenes }}</div>
+          </div>
+          <div class="kpi-card" style="border-left-color: #28a745;">
+            <h4>Completadas / Entregadas</h4>
+            <div class="number">{{ rep.completadas }}</div>
+          </div>
+          <div class="kpi-card" style="border-left-color: #ffc107;">
+            <h4>En Proceso</h4>
+            <div class="number">{{ rep.enProceso }}</div>
+          </div>
+          <div class="kpi-card" style="border-left-color: #dc3545;">
+            <h4>Pendientes / Recibidas</h4>
+            <div class="number">{{ rep.pendientes }}</div>
+          </div>
+        </div>
+
+        <!-- Tabla Rendimiento por Técnico -->
+        <h3>👨‍🔧 Rendimiento por Técnico</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>ID Técnico</th>
+              <th>Técnico</th>
+              <th>Órdenes Asignadas</th>
+              <th>Completadas</th>
+              <th>En Proceso</th>
+              <th>Efectividad</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (tec of rep.rendimientoTecnicos; track tec.tecnicoId) {
+              <tr>
+                <td><strong>#{{ tec.tecnicoId }}</strong></td>
+                <td>👤 {{ tec.nombreTecnico }}</td>
+                <td>{{ tec.ordenesAsignadas }}</td>
+                <td><span class="stock-badge in-stock">{{ tec.ordenesFinalizadas }}</span></td>
+                <td><span class="stock-badge low-stock">{{ tec.ordenesEnProceso }}</span></td>
+                <td>
+                  <strong>
+                    {{ tec.ordenesAsignadas > 0 ? ((tec.ordenesFinalizadas / tec.ordenesAsignadas) * 100).toFixed(0) : 0 }}%
+                  </strong>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" style="text-align: center; color: #888; padding: 1.5rem;">
+                  Sin actividad asignada a técnicos en este rango de fechas.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else {
+        <div style="text-align: center; padding: 3rem; color: #666;">
+          Cargando reporte de rendimiento...
         </div>
       }
+    }
 
-      <!-- SECCIÓN 4: MÉTRICAS Y REPORTES DE RENDIMIENTO (US-016) -->
-      @if (activeTab() === 'reportes') {
-        <div style="margin-bottom: 15px;">
-          <h3>📊 Métricas y Reportes Operativos</h3>
-          <p style="font-size: 13px; color: #666;">Monitoreo general de rendimiento e indicadores por técnico.</p>
-        </div>
-
-        <!-- Barra de Filtros -->
-        <div class="filter-bar">
-          <div>
-            <label>Desde: </label>
-            <input type="date" [(ngModel)]="filtroFechaInicio" (change)="cargarReportes()">
-          </div>
-          <div>
-            <label>Hasta: </label>
-            <input type="date" [(ngModel)]="filtroFechaFin" (change)="cargarReportes()">
-          </div>
-          <button class="btn btn-cancel" style="font-size: 12px; padding: 6px 12px;" (click)="limpiarFiltrosFechas()">Limpiar Filtros</button>
-        </div>
-
-        @if (reporteRendimiento(); as rep) {
-          <!-- Tarjetas KPI -->
-          <div class="kpi-grid">
-            <div class="kpi-card" style="border-left-color: #007bff;">
-              <h4>Total Órdenes</h4>
-              <div class="number">{{ rep.totalOrdenes }}</div>
-            </div>
-            <div class="kpi-card" style="border-left-color: #28a745;">
-              <h4>Completadas / Entregadas</h4>
-              <div class="number">{{ rep.completadas }}</div>
-            </div>
-            <div class="kpi-card" style="border-left-color: #ffc107;">
-              <h4>En Proceso</h4>
-              <div class="number">{{ rep.enProceso }}</div>
-            </div>
-            <div class="kpi-card" style="border-left-color: #dc3545;">
-              <h4>Pendientes / Recibidas</h4>
-              <div class="number">{{ rep.pendientes }}</div>
-            </div>
-          </div>
-
-          <!-- Tabla Rendimiento por Técnico -->
-          <h3>👨‍🔧 Rendimiento por Técnico</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>ID Técnico</th>
-                <th>Técnico</th>
-                <th>Órdenes Asignadas</th>
-                <th>Completadas</th>
-                <th>En Proceso</th>
-                <th>Efectividad</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (tec of rep.rendimientoTecnicos; track tec.tecnicoId) {
-                <tr>
-                  <td><strong>#{{ tec.tecnicoId }}</strong></td>
-                  <td>👤 {{ tec.nombreTecnico }}</td>
-                  <td>{{ tec.ordenesAsignadas }}</td>
-                  <td><span class="stock-badge in-stock">{{ tec.ordenesFinalizadas }}</span></td>
-                  <td><span class="stock-badge low-stock">{{ tec.ordenesEnProceso }}</span></td>
-                  <td>
-                    <strong>
-                      {{ tec.ordenesAsignadas > 0 ? ((tec.ordenesFinalizadas / tec.ordenesAsignadas) * 100).toFixed(0) : 0 }}%
-                    </strong>
-                  </td>
-                </tr>
-              } @empty {
-                <tr>
-                  <td colspan="6" style="text-align: center; color: #888; padding: 1.5rem;">
-                    Sin actividad asignada a técnicos en este rango de fechas.
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        } @else {
-          <div style="text-align: center; padding: 3rem; color: #666;">
-            Cargando reporte de rendimiento...
-          </div>
-        }
-      }
-
-    </div>
   </div>
 </div>

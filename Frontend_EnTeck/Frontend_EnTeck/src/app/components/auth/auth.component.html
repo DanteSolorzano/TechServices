@@ -1,0 +1,62 @@
+<div class="auth-container">
+  <div class="auth-card fade-in">
+
+    <!-- Botón de regreso al tracking -->
+    <a routerLink="/tracking" class="back-link">
+      ← Volver al rastreo
+    </a>
+
+    <h2>{{ isRegistering() ? 'Crear Cuenta' : 'Iniciar Sesión' }}</h2>
+    <p class="subtitle">
+      {{ isRegistering() ? 'Regístrate para ver el estatus de tus equipos.' : 'Ingresa para ver tus reparaciones.' }}
+    </p>
+
+    @if (errorMessage()) {
+      <div class="error-message">{{ errorMessage() }}</div>
+    }
+
+    <form (ngSubmit)="onSubmit()">
+      @if (isRegistering()) {
+        <div class="form-group slide-down">
+          <label>Nombre Completo</label>
+          <input type="text" [(ngModel)]="registerData.name" name="name" placeholder="Ej: Ana López" required [disabled]="isLoading()">
+        </div>
+        <div class="form-group slide-down">
+          <label>Teléfono Celular</label>
+          <input type="tel" [(ngModel)]="registerData.phone" name="phone" placeholder="10 dígitos" required [disabled]="isLoading()">
+        </div>
+        <div class="form-group slide-down">
+          <label>Dirección (Opcional)</label>
+          <input type="text" [(ngModel)]="registerData.address" name="address" placeholder="Tu dirección" [disabled]="isLoading()">
+        </div>
+      }
+
+      <div class="form-group">
+        <label>Correo Electrónico</label>
+        <input type="email" [(ngModel)]="authData.email" name="email" placeholder="cliente@correo.com" required [disabled]="isLoading()">
+      </div>
+
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" [(ngModel)]="authData.password" name="password" placeholder="******" required [disabled]="isLoading()">
+      </div>
+
+      <button type="submit" class="submit-btn" [disabled]="isLoading()">
+        @if (isLoading()) {
+          <span>Procesando...</span>
+        } @else {
+          <span>{{ isRegistering() ? 'Registrarse' : 'Ingresar' }}</span>
+        }
+      </button>
+    </form>
+
+    <div class="toggle-link">
+      <p>
+        {{ isRegistering() ? '¿Ya tienes cuenta?' : '¿Eres nuevo en EnTeck?' }}
+        <a (click)="toggleMode()">
+          {{ isRegistering() ? 'Inicia Sesión aquí' : 'Regístrate aquí' }}
+        </a>
+      </p>
+    </div>
+  </div>
+</div>
