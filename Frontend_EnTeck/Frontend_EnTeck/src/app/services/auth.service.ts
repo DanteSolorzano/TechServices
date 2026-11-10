@@ -1,6 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment'; 
 
 export interface SignupRequest {
   Nombre: string;
@@ -28,7 +29,7 @@ export interface AuthResponse {
 })
 export class AuthService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://127.0.0.1:5190/api/auth';
+  private apiUrl = `${environment.apiUrl}/api/auth`; // <-- CAMBIO
 
   currentUser = signal<AuthResponse | null>(null);
   isLoggedIn = signal<boolean>(false);

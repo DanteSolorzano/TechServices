@@ -2,7 +2,8 @@ import { Component, signal, inject, OnInit, ChangeDetectionStrategy } from '@ang
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { ServiceOrderService, ServiceOrder } from '../../services/service-order.service';
+import { ServiceOrderService } from '../../services/service-order.service';
+import { ServiceOrder } from '../../models/service-order.model'; // <-- CAMBIO: Importado desde models
 
 @Component({
   selector: 'app-tracking',

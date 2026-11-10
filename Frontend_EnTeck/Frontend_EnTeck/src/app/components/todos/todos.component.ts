@@ -1,7 +1,6 @@
-import { Component, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
-import { inject } from '@angular/core';
 import { MenuItem } from '../../models/menu-item.model';
 import { MatCard, MatCardContent, MatCardTitle, MatCardSubtitle } from '@angular/material/card';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
@@ -21,6 +20,7 @@ import { ProductDetailDialogComponent } from '../product-detail-dialog/product-d
     MatDialogModule
   ],
   templateUrl: './todos.component.html',
+  styleUrl: './todos.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TodosComponent implements OnInit {
@@ -58,4 +58,3 @@ export class TodosComponent implements OnInit {
     });
   }
 }
-

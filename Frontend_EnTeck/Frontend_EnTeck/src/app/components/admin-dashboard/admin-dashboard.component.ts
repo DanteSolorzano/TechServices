@@ -3,17 +3,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MenuItem } from '../../models/menu-item.model';
-import { ServiceOrderService, ServiceOrder, ReporteRendimiento } from '../../services/service-order.service';
-
-interface User {
-  id: number;
-  nombre: string;
-  correo: string;
-  telefono: string;
-  direccion: string;
-  esAdmin: boolean;
-  rol?: string;
-}
+import { User } from '../../models/user.model';
+import { ServiceOrder, ReporteRendimiento } from '../../models/service-order.model';
+import { ServiceOrderService } from '../../services/service-order.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -47,6 +40,7 @@ export class AdminDashboardComponent implements OnInit {
   isEditing = signal(false);
   currentItem = signal<MenuItem>(this.getEmptyItem());
 
+  // Datos locales (del e-commerce) que dejamos preparados para el futuro
   items = signal<MenuItem[]>([
     { id: 1, nombre: 'Cambio de Pantalla iPhone 11', categoria: 'Servicios', descripcion: 'Display OLED.', modeloCompatible: 'iPhone 11', precio: 1200, stock: 100, imagenUrl: '', esServicio: true },
     { id: 4, nombre: 'Funda Survivor', categoria: 'Fundas', descripcion: 'Uso rudo.', modeloCompatible: 'Samsung A54', precio: 250, stock: 5, imagenUrl: '', esServicio: false }
@@ -59,7 +53,7 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   cargarUsuarios() {
-    this.httpClient.get<User[]>('http://localhost:5190/api/clientes').subscribe({
+    this.httpClient.get<User[]>(`${environment.apiUrl}/api/clientes`).subscribe({
       next: (users) => {
         if (users) {
           this.usuarios.set(users);
@@ -125,7 +119,7 @@ export class AdminDashboardComponent implements OnInit {
     };
 
     // Intentamos en /api/clientes
-    this.httpClient.post('http://localhost:5190/api/clientes', payload).subscribe({
+    this.httpClient.post(`${environment.apiUrl}/api/clientes`, payload).subscribe({
       next: () => {
         alert(`¡Usuario "${this.nuevoUsuario.nombre}" creado exitosamente!`);
         this.nuevoUsuario = {
@@ -142,7 +136,7 @@ export class AdminDashboardComponent implements OnInit {
         console.error('Error en /api/clientes, probando /api/auth/register...', err);
         
         // Fallback en caso de que el backend gestione registros por /api/auth/register
-        this.httpClient.post('http://localhost:5190/api/auth/register', payload).subscribe({
+        this.httpClient.post(`${environment.apiUrl}/api/auth/register`, payload).subscribe({
           next: () => {
             alert(`¡Usuario "${this.nuevoUsuario.nombre}" registrado exitosamente!`);
             this.nuevoUsuario = {

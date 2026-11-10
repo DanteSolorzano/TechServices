@@ -1,0 +1,56 @@
+<div class="request-container">
+  <div class="form-card">
+    <div class="header">
+      <h2>🛠️ Cotiza tu Reparación</h2>
+      <p>¿No encuentras lo que buscas? Describe tu problema y te contactamos.</p>
+    </div>
+
+    @if (loading()) {
+      <div class="loading">
+        <span class="spinner"></span> Enviando solicitud...
+      </div>
+    } @else if (error()) {
+      <div class="error-message">
+        <div class="icon">❌</div>
+        <h3>Error al enviar</h3>
+        <p>{{ error() }}</p>
+        <button (click)="clearError()">Intentar de nuevo</button>
+      </div>
+    } @else if (sent()) {
+      <div class="success-message">
+        <div class="icon">🎉</div>
+        <h3>¡Solicitud Enviada!</h3>
+        <p>Un técnico de EnTeck analizará tu caso y te contactará en menos de 24 horas.</p>
+        <button (click)="reset()">Nueva Solicitud</button>
+      </div>
+    } @else {
+      <form (ngSubmit)="submit()">
+        <div class="form-group">
+          <label>Tu Nombre</label>
+          <input type="text" [value]="clientName()" disabled placeholder="Cargando...">
+          <small style="color: #999; margin-top: 4px;">Obtenido de tu perfil</small>
+        </div>
+
+        <div class="row">
+          <div class="form-group">
+            <label>Marca del Dispositivo</label>
+            <input type="text" [(ngModel)]="data.brand" name="brand" required placeholder="Ej: Samsung, iPhone, Xiaomi">
+          </div>
+          <div class="form-group">
+            <label>Modelo</label>
+            <input type="text" [(ngModel)]="data.model" name="model" required placeholder="Ej: Galaxy S21, 13 Pro">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Describe el problema</label>
+          <textarea [(ngModel)]="data.issue" name="issue" rows="4" required placeholder="Ej: Se cayó al agua, no enciende, la pantalla tiene manchas..."></textarea>
+        </div>
+
+        <button type="submit" class="submit-btn" [disabled]="!isValid() || loading()">
+          Enviar Solicitud
+        </button>
+      </form>
+    }
+  </div>
+</div>

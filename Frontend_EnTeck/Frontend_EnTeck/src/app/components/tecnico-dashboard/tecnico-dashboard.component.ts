@@ -1,7 +1,8 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ServiceOrderService, ServiceOrder } from '../../services/service-order.service';
+import { ServiceOrderService } from '../../services/service-order.service';
+import { ServiceOrder } from '../../models/service-order.model'; 
 import { AuthService } from '../../services/auth.service';
 
 @Component({

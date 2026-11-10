@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment'; // <-- NUEVO
+
 
 export interface WhatsAppNotificationPayload {
   cliente: string;
@@ -13,7 +15,7 @@ export interface WhatsAppNotificationPayload {
   providedIn: 'root'
 })
 export class WhatsappService {
-  private apiUrl = 'http://localhost:5190/api/WhatsApp/enviar';
+private apiUrl = `${environment.apiUrl}/api/WhatsApp/enviar`; // <-- CAMBIO
 
   constructor(private http: HttpClient) {}
 

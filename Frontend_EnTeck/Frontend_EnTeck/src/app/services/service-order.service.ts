@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 export interface ServiceOrder {
   id: number;
@@ -42,7 +43,7 @@ export interface ReporteRendimiento {
 })
 export class ServiceOrderService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:5190/api/solicitudes';
+  private apiUrl = `${environment.apiUrl}/api/solicitudes`; 
 
   getClientOrders(clientId: string | number): Observable<ServiceOrder[]> {
     return this.http.get<ServiceOrder[]>(`${this.apiUrl}/cliente/${clientId}`).pipe(

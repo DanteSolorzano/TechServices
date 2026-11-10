@@ -2,7 +2,8 @@ import { Component, signal, inject, OnInit, ChangeDetectionStrategy, output } fr
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { AuthService, SignupRequest, LoginRequest, AuthResponse } from '../../services/auth.service';
+import { AuthService } from '../../services/auth.service';
+import { SignupRequest, LoginRequest, AuthResponse } from '../../models/user.model';
 
 @Component({
   selector: 'app-auth',
