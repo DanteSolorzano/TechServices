@@ -43,9 +43,9 @@ public class SolicitudesController : ControllerBase
     [HttpGet("tecnico/{tecnicoId}")]
     public async Task<IActionResult> GetPorTecnico(int tecnicoId)
     {
-        // Trae las órdenes asignadas a este técnico O las órdenes sin técnico asignado/pendientes
+        // CORREGIDO: Solo trae las órdenes que están asignadas estrictamente a este técnico.
         var solicitudes = await _context.SolicitudesServicio
-            .Where(s => s.IdTecnico == tecnicoId || s.IdTecnico == null || s.IdTecnico == 0 || string.IsNullOrEmpty(s.NombreTecnico))
+            .Where(s => s.IdTecnico == tecnicoId)
             .OrderByDescending(s => s.Id)
             .ToListAsync();
 

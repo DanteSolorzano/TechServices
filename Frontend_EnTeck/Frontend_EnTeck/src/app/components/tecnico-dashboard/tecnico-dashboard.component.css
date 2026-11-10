@@ -1,9 +1,41 @@
+:host {
+  display: block;
+  width: 100%;
+  background: #f4f7f6;
+}
+
 .tech-panel-container {
-  padding: 1.5rem;
   max-width: 1200px;
   margin: 0 auto;
+  padding: 1.5rem;
   font-family: Arial, Helvetica, sans-serif;
   box-sizing: border-box;
+}
+
+/* NUEVO: Estilos del Saludo */
+.welcome-header {
+  background: white;
+  padding: 1.5rem 2rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.welcome-header h2 {
+  margin: 0 0 5px 0;
+  color: #333;
+  font-size: 26px;
+}
+
+.welcome-header .highlight {
+  color: #667eea; /* El color de acento de la app */
+  font-weight: bold;
+}
+
+.welcome-header p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
 }
 
 .grid-orders {
@@ -138,7 +170,6 @@
 }
 
 .empty-state {
-  grid-column: 1 / -1;
   text-align: center;
   color: #777;
   padding: 3rem;

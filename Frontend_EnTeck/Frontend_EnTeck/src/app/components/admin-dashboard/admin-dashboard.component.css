@@ -19,6 +19,30 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
+/* NUEVO: Estilos del Saludo */
+.welcome-header {
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 2px dashed #eee;
+}
+
+.welcome-header h2 {
+  margin: 0 0 5px 0;
+  color: #333;
+  font-size: 26px;
+}
+
+.welcome-header .highlight {
+  color: #667eea; /* El color de acento de la app */
+  font-weight: bold;
+}
+
+.welcome-header p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
 /* Tabs */
 .tabs-nav {
   display: flex;

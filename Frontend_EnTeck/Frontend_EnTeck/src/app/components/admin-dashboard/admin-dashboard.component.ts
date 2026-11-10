@@ -6,6 +6,7 @@ import { MenuItem } from '../../models/menu-item.model';
 import { User } from '../../models/user.model';
 import { ServiceOrder, ReporteRendimiento } from '../../models/service-order.model';
 import { ServiceOrderService } from '../../services/service-order.service';
+import { AuthService } from '../../services/auth.service'; // <-- NUEVO
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -18,6 +19,10 @@ import { environment } from '../../../environments/environment';
 export class AdminDashboardComponent implements OnInit {
   private serviceOrderService = inject(ServiceOrderService);
   private httpClient = inject(HttpClient);
+  private authService = inject(AuthService); // <-- NUEVO
+
+  // NUEVA SEÑAL PARA EL NOMBRE DEL USUARIO
+  currentUserName = signal<string>('Administrador');
 
   activeTab = signal<'inventario' | 'reparto' | 'usuarios' | 'reportes'>('inventario');
   ordenesPendientes = signal<ServiceOrder[]>([]);
@@ -28,7 +33,6 @@ export class AdminDashboardComponent implements OnInit {
   filtroFechaInicio = signal<string>('');
   filtroFechaFin = signal<string>('');
 
-  // Variables para CREAR usuario
   nuevoUsuario = {
     nombre: '',
     correo: '',
@@ -38,7 +42,6 @@ export class AdminDashboardComponent implements OnInit {
     nivelPrivilegio: 2
   };
 
-  // NUEVAS Variables para EDITAR usuario
   isEditingUser = signal(false);
   editUserData = signal<User | null>(null);
 
@@ -51,6 +54,12 @@ export class AdminDashboardComponent implements OnInit {
   ]);
 
   ngOnInit() {
+    // OBTENER EL NOMBRE DEL USUARIO LOGUEADO
+    const user = this.authService.getCurrentUser();
+    if (user && user.nombre) {
+      this.currentUserName.set(user.nombre);
+    }
+
     this.cargarUsuarios();
     this.cargarOrdenesPendientes();
     this.cargarReportes();
@@ -115,9 +124,8 @@ export class AdminDashboardComponent implements OnInit {
     });
   }
 
-  // --- NUEVA LÓGICA PARA EDITAR ---
   startEditUser(user: User) {
-    this.editUserData.set({ ...user }); // <-- Eliminamos el 'contrasena: ""' de aquí
+    this.editUserData.set({ ...user });
     this.isEditingUser.set(true);
   }
 
@@ -134,7 +142,7 @@ export class AdminDashboardComponent implements OnInit {
       next: () => {
         alert('¡Usuario actualizado exitosamente!');
         this.cancelEditUser();
-        this.cargarUsuarios(); // Refrescamos la tabla
+        this.cargarUsuarios();
       },
       error: (err) => {
         console.error('Error al actualizar usuario:', err);
@@ -143,13 +151,12 @@ export class AdminDashboardComponent implements OnInit {
     });
   }
 
-  // --- NUEVA LÓGICA PARA ELIMINAR ---
   eliminarUsuario(id: number) {
     if (confirm('¿Estás seguro de que deseas eliminar este usuario? Esta acción no se puede deshacer.')) {
       this.httpClient.delete(`${environment.apiUrl}/api/clientes/${id}`).subscribe({
         next: () => {
           alert('Usuario eliminado correctamente.');
-          this.cargarUsuarios(); // Refrescamos la tabla
+          this.cargarUsuarios();
         },
         error: (err) => {
           console.error('Error al eliminar usuario:', err);

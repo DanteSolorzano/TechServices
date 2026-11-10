@@ -30,6 +30,29 @@ namespace Backend_EnTeck.Controllers
             return Ok(usuarios);
         }
 
+                // GET: api/clientes/{id}
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetClientePorId(int id)
+        {
+            var usuario = await _context.Users.FindAsync(id);
+            if (usuario == null)
+            {
+                return NotFound(new { mensaje = "Usuario no encontrado." });
+            }
+
+            return Ok(new
+            {
+                id = usuario.Id,
+                nombre = usuario.Nombre,
+                telefono = usuario.Telefono,
+                correo = usuario.Correo,
+                direccion = usuario.Direccion,
+                nivelPrivilegio = usuario.NivelPrivilegio,
+                esAdmin = usuario.EsAdmin,
+                rol = usuario.Rol
+            });
+        }
+
         // POST: api/clientes/login
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)

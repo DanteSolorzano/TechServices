@@ -66,31 +66,10 @@ export class ServiceOrderService {
     });
   }
 
+  // CORREGIDO: Ahora solo hace la petición HTTP directa. 
+  // Si el backend no devuelve nada, Angular recibe un array vacío.
   getOrdenesPorTecnico(tecnicoId: number): Observable<ServiceOrder[]> {
-    return this.http.get<ServiceOrder[]>(`${this.apiUrl}/tecnico/${tecnicoId}`).pipe(
-      map(ordenes => {
-        if (ordenes && ordenes.length > 0) {
-          return ordenes;
-        }
-        throw new Error('Sin ordenes directas');
-      }),
-      catchError(() => {
-        return this.getPendientes().pipe(
-          map(ordenes => {
-            if (!ordenes) return [];
-            const filtradas = ordenes.filter(o => 
-              o.idTecnico === tecnicoId || 
-              !o.idTecnico || 
-              o.idTecnico === 0 ||
-              o.estado === 'En Proceso' ||
-              o.estado === 'Recibido' ||
-              o.estado === 'Pendiente'
-            );
-            return filtradas.length > 0 ? filtradas : ordenes;
-          })
-        );
-      })
-    );
+    return this.http.get<ServiceOrder[]>(`${this.apiUrl}/tecnico/${tecnicoId}`);
   }
 
   actualizarEstado(ordenId: number, nuevoEstado: string): Observable<any> {

@@ -1,5 +1,11 @@
 <div class="tech-panel-container">
 
+  <!-- NUEVO: Encabezado Personalizado -->
+  <div class="welcome-header">
+    <h2>👋 ¡Hola, <span class="highlight">{{ currentUserName() }}</span>!</h2>
+    <p>Gestiona el diagnóstico y estado de tus reparaciones asignadas.</p>
+  </div>
+
   <!-- Contenedor de Tarjetas de Órdenes -->
   <div class="grid-orders">
     @for (orden of misOrdenes(); track orden.id) {

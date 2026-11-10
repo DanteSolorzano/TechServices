@@ -16,18 +16,34 @@ export class TecnicoDashboardComponent implements OnInit {
   private serviceOrderService = inject(ServiceOrderService);
   private authService = inject(AuthService);
 
+  // NUEVA SEÑAL PARA EL NOMBRE
+  currentUserName = signal<string>('Técnico');
+
   misOrdenes = signal<ServiceOrder[]>([]);
   cargando = signal<boolean>(true);
   notificandoMap = signal<{ [key: number]: boolean }>({});
 
   ngOnInit() {
+    // OBTENER EL NOMBRE DEL USUARIO LOGUEADO
+    const user = this.authService.getCurrentUser();
+    if (user && user.nombre) {
+      this.currentUserName.set(user.nombre);
+    }
+
     this.cargarMisOrdenes();
   }
 
   cargarMisOrdenes() {
     this.cargando.set(true);
     const user = this.authService.getCurrentUser();
-    const tecnicoId = user?.id || 13;
+    
+    if (!user || !user.id) {
+      console.error('No hay usuario logueado o no tiene ID');
+      this.cargando.set(false);
+      return;
+    }
+
+    const tecnicoId = user.id;
 
     this.serviceOrderService.getOrdenesPorTecnico(tecnicoId).subscribe({
       next: (ordenes) => {
