@@ -37,9 +37,9 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference(); // Documentación interactiva de .NET 9
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection(); // Desactivado para evitar conflictos de CORS en local
 app.UseCors("AllowAll");
-app.MapControllers();
+app.MapControllers(); // <-- Aquí se cargan tus controladores (Clientes, Solicitudes, Encuestas, etc.)
 
 // ----------------------------------------------------
 // AUTH ENDPOINTS
@@ -117,116 +117,8 @@ app.MapPost("/api/auth/login", async (SignupRequest request, ApplicationDbContex
 
 
 // ----------------------------------------------------
-// CLIENTS ENDPOINTS
-// ----------------------------------------------------
-
-app.MapGet("/api/clientes", async (ApplicationDbContext db) =>
-{
-    var clientes = await db.Users.Select(u => new
-    {
-        id = u.Id,
-        nombre = u.Nombre,
-        telefono = u.Telefono,
-        correo = u.Correo,
-        direccion = u.Direccion,
-        nivelPrivilegio = u.NivelPrivilegio,
-        esAdmin = u.EsAdmin,
-        rol = u.Rol
-    }).ToListAsync();
-
-    return Results.Ok(clientes);
-})
-.WithName("GetAllClientes")
-.WithOpenApi();
-
-app.MapGet("/api/clients", async (ApplicationDbContext db) =>
-{
-    var clientes = await db.Users.Select(u => new
-    {
-        id = u.Id,
-        nombre = u.Nombre,
-        telefono = u.Telefono,
-        correo = u.Correo,
-        direccion = u.Direccion,
-        nivelPrivilegio = u.NivelPrivilegio,
-        esAdmin = u.EsAdmin,
-        rol = u.Rol
-    }).ToListAsync();
-
-    return Results.Ok(clientes);
-})
-.WithName("GetAllClients")
-.WithOpenApi();
-
-app.MapGet("/api/clients/{id}", async (int id, ApplicationDbContext db) =>
-{
-    var cliente = await db.Users.FirstOrDefaultAsync(u => u.Id == id);
-    if (cliente == null) return Results.NotFound(new { message = "Cliente not found" });
-
-    return Results.Ok(new
-    {
-        id = cliente.Id,
-        nombre = cliente.Nombre,
-        telefono = cliente.Telefono,
-        correo = cliente.Correo,
-        direccion = cliente.Direccion,
-        nivelPrivilegio = cliente.NivelPrivilegio,
-        esAdmin = cliente.EsAdmin,
-        rol = cliente.Rol
-    });
-})
-.WithName("GetClientInfo")
-.WithOpenApi();
-
-app.MapGet("/api/clientes/{id}", async (int id, ApplicationDbContext db) =>
-{
-    var cliente = await db.Users.FirstOrDefaultAsync(u => u.Id == id);
-    if (cliente == null) return Results.NotFound(new { message = "Cliente not found" });
-
-    return Results.Ok(new
-    {
-        id = cliente.Id,
-        nombre = cliente.Nombre,
-        telefono = cliente.Telefono,
-        correo = cliente.Correo,
-        direccion = cliente.Direccion,
-        nivelPrivilegio = cliente.NivelPrivilegio,
-        esAdmin = cliente.EsAdmin,
-        rol = cliente.Rol
-    });
-})
-.WithName("GetClienteInfoEs")
-.WithOpenApi();
-
-app.MapDelete("/api/clients/{id}", async (int id, ApplicationDbContext db) =>
-{
-    var cliente = await db.Users.FirstOrDefaultAsync(u => u.Id == id);
-    if (cliente == null) return Results.NotFound(new { message = "Cliente not found" });
-
-    db.Users.Remove(cliente);
-    await db.SaveChangesAsync();
-
-    return Results.Ok(new { message = "Cliente deleted successfully" });
-})
-.WithName("DeleteClient")
-.WithOpenApi();
-
-app.MapDelete("/api/clientes/{id}", async (int id, ApplicationDbContext db) =>
-{
-    var cliente = await db.Users.FirstOrDefaultAsync(u => u.Id == id);
-    if (cliente == null) return Results.NotFound(new { message = "Cliente not found" });
-
-    db.Users.Remove(cliente);
-    await db.SaveChangesAsync();
-
-    return Results.Ok(new { message = "Cliente deleted successfully" });
-})
-.WithName("DeleteClienteEs")
-.WithOpenApi();
-
-
-// ----------------------------------------------------
 // SERVICE ORDERS ENDPOINTS
+// (Los endpoints de Clientes ya se manejan en ClientesController.cs)
 // ----------------------------------------------------
 
 app.MapGet("/api/service-order", async (ApplicationDbContext db) =>

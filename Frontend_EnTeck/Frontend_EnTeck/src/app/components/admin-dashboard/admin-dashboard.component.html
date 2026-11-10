@@ -177,50 +177,98 @@
     }
 
     <!-- SECCIÓN 3: GESTIÓN DE USUARIOS CON TRES ROLES -->
+        <!-- SECCIÓN 3: GESTIÓN DE USUARIOS CON TRES ROLES -->
     @if (activeTab() === 'usuarios') {
-      <div class="edit-form" style="margin-bottom: 20px;">
-        <h3>➕ Registrar Nuevo Usuario</h3>
-        <div class="form-grid">
-          <div class="form-group">
-            <label>Nombre Completo</label>
-            <input [(ngModel)]="nuevoUsuario.nombre" placeholder="Ej: Juan Pérez">
+      
+      <!-- FORMULARIO DE EDICIÓN (Aparece al dar clic en el lápiz) -->
+      @if (isEditingUser() && editUserData()) {
+        <div class="edit-form" style="margin-bottom: 20px; border: 2px solid #ffc107;">
+          <h3>✏️ Editando a: {{ editUserData()?.nombre }}</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Nombre Completo</label>
+              <input [(ngModel)]="editUserData()!.nombre" placeholder="Ej: Juan Pérez">
+            </div>
+
+            <div class="form-group">
+              <label>Correo Electrónico</label>
+              <input [(ngModel)]="editUserData()!.correo" type="email">
+            </div>
+
+            <div class="form-group">
+              <label>Teléfono</label>
+              <input [(ngModel)]="editUserData()!.telefono">
+            </div>
+
+            <div class="form-group">
+              <label>Dirección</label>
+              <input [(ngModel)]="editUserData()!.direccion">
+            </div>
+
+            <div class="form-group">
+              <label>Rol de Usuario</label>
+              <select [(ngModel)]="editUserData()!.nivelPrivilegio">
+                <option [ngValue]="2">👤 Cliente</option>
+                <option [ngValue]="1">🛠️ Técnico</option>
+                <option [ngValue]="0">🛡️ Administrador</option>
+              </select>
+            </div>
           </div>
 
-          <div class="form-group">
-            <label>Correo Electrónico</label>
-            <input [(ngModel)]="nuevoUsuario.correo" type="email" placeholder="juan@example.com">
-          </div>
-
-          <div class="form-group">
-            <label>Contraseña</label>
-            <input [(ngModel)]="nuevoUsuario.contrasena" type="password" placeholder="••••••••">
-          </div>
-
-          <div class="form-group">
-            <label>Teléfono</label>
-            <input [(ngModel)]="nuevoUsuario.telefono" placeholder="Ej: 4731234567">
-          </div>
-
-          <div class="form-group">
-            <label>Dirección</label>
-            <input [(ngModel)]="nuevoUsuario.direccion" placeholder="Ej: Calle Principal #123">
-          </div>
-
-          <div class="form-group">
-            <label>Rol de Usuario</label>
-            <select [(ngModel)]="nuevoUsuario.rolSeleccionado">
-              <option value="cliente">👤 Cliente</option>
-              <option value="tecnico">🛠️ Técnico</option>
-              <option value="admin">🛡️ Administrador</option>
-            </select>
+          <div class="actions">
+            <button class="btn btn-cancel" (click)="cancelEditUser()">Cancelar</button>
+            <button class="btn btn-primary" (click)="actualizarUsuario()">Guardar Cambios</button>
           </div>
         </div>
+      }
 
-        <div class="actions">
-          <button class="btn btn-primary" (click)="registrarUsuario()">Guardar Usuario</button>
+      <!-- FORMULARIO PARA CREAR NUEVO USUARIO (Solo aparece si NO estamos editando) -->
+      @if (!isEditingUser()) {
+        <div class="edit-form" style="margin-bottom: 20px;">
+          <h3>➕ Registrar Nuevo Usuario</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Nombre Completo</label>
+              <input [(ngModel)]="nuevoUsuario.nombre" placeholder="Ej: Juan Pérez">
+            </div>
+
+            <div class="form-group">
+              <label>Correo Electrónico</label>
+              <input [(ngModel)]="nuevoUsuario.correo" type="email" placeholder="juan@example.com">
+            </div>
+
+            <div class="form-group">
+              <label>Contraseña</label>
+              <input [(ngModel)]="nuevoUsuario.contrasena" type="password" placeholder="••••••••">
+            </div>
+
+            <div class="form-group">
+              <label>Teléfono</label>
+              <input [(ngModel)]="nuevoUsuario.telefono" placeholder="Ej: 4731234567">
+            </div>
+
+            <div class="form-group">
+              <label>Dirección</label>
+              <input [(ngModel)]="nuevoUsuario.direccion" placeholder="Ej: Calle Principal #123">
+            </div>
+
+            <div class="form-group">
+              <label>Rol de Usuario</label>
+              <select [(ngModel)]="nuevoUsuario.nivelPrivilegio">
+                <option [ngValue]="2">👤 Cliente</option>
+                <option [ngValue]="1">🛠️ Técnico</option>
+                <option [ngValue]="0">🛡️ Administrador</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn btn-primary" (click)="registrarUsuario()">Guardar Usuario</button>
+          </div>
         </div>
-      </div>
+      }
 
+      <!-- TABLA DE USUARIOS -->
       <div style="margin-top: 20px;">
         <h3>📋 Lista de Usuarios Registrados</h3>
         <table>
@@ -231,6 +279,7 @@
               <th>Correo</th>
               <th>Teléfono</th>
               <th>Tipo de Usuario</th>
+              <th>Acciones</th> <!-- Nueva Columna -->
             </tr>
           </thead>
           <tbody>
@@ -246,13 +295,23 @@
                     {{ infoRol.texto }}
                   </span>
                 </td>
+                <td>
+                  <!-- Botones de Acción -->
+                  <button class="btn btn-edit" (click)="startEditUser(usr)" title="Editar">✏️</button>
+                  <button class="btn btn-delete" (click)="eliminarUsuario(usr.id)" title="Eliminar">🗑️</button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" style="text-align: center; color: #888; padding: 2rem;">
+                  No hay usuarios registrados.
+                </td>
               </tr>
             }
           </tbody>
         </table>
       </div>
     }
-
     <!-- SECCIÓN 4: MÉTRICAS Y REPORTES DE RENDIMIENTO (US-016) -->
     @if (activeTab() === 'reportes') {
       <div style="margin-bottom: 15px;">

@@ -28,19 +28,23 @@ export class AdminDashboardComponent implements OnInit {
   filtroFechaInicio = signal<string>('');
   filtroFechaFin = signal<string>('');
 
+  // Variables para CREAR usuario
   nuevoUsuario = {
     nombre: '',
     correo: '',
     contrasena: '',
     telefono: '',
     direccion: '',
-    rolSeleccionado: 'cliente'
+    nivelPrivilegio: 2
   };
+
+  // NUEVAS Variables para EDITAR usuario
+  isEditingUser = signal(false);
+  editUserData = signal<User | null>(null);
 
   isEditing = signal(false);
   currentItem = signal<MenuItem>(this.getEmptyItem());
 
-  // Datos locales (del e-commerce) que dejamos preparados para el futuro
   items = signal<MenuItem[]>([
     { id: 1, nombre: 'Cambio de Pantalla iPhone 11', categoria: 'Servicios', descripcion: 'Display OLED.', modeloCompatible: 'iPhone 11', precio: 1200, stock: 100, imagenUrl: '', esServicio: true },
     { id: 4, nombre: 'Funda Survivor', categoria: 'Fundas', descripcion: 'Uso rudo.', modeloCompatible: 'Samsung A54', precio: 250, stock: 5, imagenUrl: '', esServicio: false }
@@ -58,11 +62,8 @@ export class AdminDashboardComponent implements OnInit {
         if (users) {
           this.usuarios.set(users);
           
-          // FILTRO ESTRICTO: Solo incluir usuarios registrados con rol 'tecnico' o correo técnico
           const soloTecnicos = users.filter(u => {
-            const correo = (u.correo || '').toLowerCase().trim();
-            const rol = (u.rol || '').toLowerCase().trim();
-            return !u.esAdmin && (rol === 'tecnico' || correo.includes('tecnico'));
+            return !u.esAdmin && u.nivelPrivilegio === 1; // 1 = Técnico
           }).map(u => ({ id: u.id, nombre: u.nombre }));
 
           this.tecnicos.set(soloTecnicos);
@@ -73,16 +74,9 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   obtenerEtiquetaRol(user: User): { texto: string; clase: string } {
-    if (user.esAdmin || user.rol === 'admin') {
-      return { texto: '🛡️ Administrador', clase: 'in-stock' };
-    }
-    
-    const correo = (user.correo || '').toLowerCase().trim();
-    const rol = (user.rol || '').toLowerCase().trim();
-    if (rol === 'tecnico' || correo.includes('tecnico')) {
-      return { texto: '🛠️ Técnico', clase: 'tech-stock' };
-    }
-
+    const nivel = Number(user.nivelPrivilegio);
+    if (nivel === 0 || user.esAdmin) return { texto: '🛡️ Administrador', clase: 'in-stock' };
+    if (nivel === 1) return { texto: '🛠️ Técnico', clase: 'tech-stock' };
     return { texto: '👤 Cliente', clase: 'low-stock' };
   }
 
@@ -108,54 +102,61 @@ export class AdminDashboardComponent implements OnInit {
       return;
     }
 
-    const payload = {
-      nombre: this.nuevoUsuario.nombre,
-      correo: this.nuevoUsuario.correo,
-      contrasena: this.nuevoUsuario.contrasena,
-      telefono: this.nuevoUsuario.telefono,
-      direccion: this.nuevoUsuario.direccion,
-      esAdmin: this.nuevoUsuario.rolSeleccionado === 'admin',
-      rol: this.nuevoUsuario.rolSeleccionado
-    };
-
-    // Intentamos en /api/clientes
-    this.httpClient.post(`${environment.apiUrl}/api/clientes`, payload).subscribe({
+    this.httpClient.post(`${environment.apiUrl}/api/clientes`, this.nuevoUsuario).subscribe({
       next: () => {
         alert(`¡Usuario "${this.nuevoUsuario.nombre}" creado exitosamente!`);
-        this.nuevoUsuario = {
-          nombre: '',
-          correo: '',
-          contrasena: '',
-          telefono: '',
-          direccion: '',
-          rolSeleccionado: 'cliente'
-        };
+        this.nuevoUsuario = { nombre: '', correo: '', contrasena: '', telefono: '', direccion: '', nivelPrivilegio: 2 };
         this.cargarUsuarios();
       },
       error: (err) => {
-        console.error('Error en /api/clientes, probando /api/auth/register...', err);
-        
-        // Fallback en caso de que el backend gestione registros por /api/auth/register
-        this.httpClient.post(`${environment.apiUrl}/api/auth/register`, payload).subscribe({
-          next: () => {
-            alert(`¡Usuario "${this.nuevoUsuario.nombre}" registrado exitosamente!`);
-            this.nuevoUsuario = {
-              nombre: '',
-              correo: '',
-              contrasena: '',
-              telefono: '',
-              direccion: '',
-              rolSeleccionado: 'cliente'
-            };
-            this.cargarUsuarios();
-          },
-          error: (err2) => {
-            console.error('Error al registrar usuario:', err2);
-            alert('Hubo un problema al crear el usuario. Revisa el backend en C#.');
-          }
-        });
+        console.error('Error al registrar usuario:', err);
+        alert('Hubo un problema al crear el usuario.');
       }
     });
+  }
+
+  // --- NUEVA LÓGICA PARA EDITAR ---
+  startEditUser(user: User) {
+    this.editUserData.set({ ...user }); // <-- Eliminamos el 'contrasena: ""' de aquí
+    this.isEditingUser.set(true);
+  }
+
+  cancelEditUser() {
+    this.isEditingUser.set(false);
+    this.editUserData.set(null);
+  }
+
+  actualizarUsuario() {
+    const userToUpdate = this.editUserData();
+    if (!userToUpdate || !userToUpdate.id) return;
+
+    this.httpClient.put(`${environment.apiUrl}/api/clientes/${userToUpdate.id}`, userToUpdate).subscribe({
+      next: () => {
+        alert('¡Usuario actualizado exitosamente!');
+        this.cancelEditUser();
+        this.cargarUsuarios(); // Refrescamos la tabla
+      },
+      error: (err) => {
+        console.error('Error al actualizar usuario:', err);
+        alert('Hubo un problema al actualizar el usuario.');
+      }
+    });
+  }
+
+  // --- NUEVA LÓGICA PARA ELIMINAR ---
+  eliminarUsuario(id: number) {
+    if (confirm('¿Estás seguro de que deseas eliminar este usuario? Esta acción no se puede deshacer.')) {
+      this.httpClient.delete(`${environment.apiUrl}/api/clientes/${id}`).subscribe({
+        next: () => {
+          alert('Usuario eliminado correctamente.');
+          this.cargarUsuarios(); // Refrescamos la tabla
+        },
+        error: (err) => {
+          console.error('Error al eliminar usuario:', err);
+          alert('Hubo un problema al eliminar el usuario.');
+        }
+      });
+    }
   }
 
   cargarOrdenesPendientes() {

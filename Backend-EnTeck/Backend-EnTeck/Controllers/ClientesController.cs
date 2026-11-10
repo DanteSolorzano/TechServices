@@ -100,5 +100,62 @@ namespace Backend_EnTeck.Controllers
                 return StatusCode(500, new { mensaje = "Error al guardar el usuario", detalle = ex.Message });
             }
         }
+
+                // PUT: api/clientes/{id}
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateCliente(int id, [FromBody] User usuarioActualizado)
+        {
+            if (usuarioActualizado == null)
+            {
+                return BadRequest(new { mensaje = "Datos del usuario inválidos." });
+            }
+
+            try
+            {
+                var usuario = await _context.Users.FindAsync(id);
+                if (usuario == null)
+                {
+                    return NotFound(new { mensaje = "Usuario no encontrado." });
+                }
+
+                // Actualizar campos (Evitamos actualizar la contraseña desde aquí para mayor seguridad)
+                usuario.Nombre = usuarioActualizado.Nombre;
+                usuario.Correo = usuarioActualizado.Correo;
+                usuario.Telefono = usuarioActualizado.Telefono;
+                usuario.Direccion = usuarioActualizado.Direccion;
+                usuario.NivelPrivilegio = usuarioActualizado.NivelPrivilegio;
+
+                await _context.SaveChangesAsync();
+
+                return Ok(usuario);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = "Error al actualizar el usuario", detalle = ex.Message });
+            }
+        }
+
+        // DELETE: api/clientes/{id}
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteCliente(int id)
+        {
+            try
+            {
+                var usuario = await _context.Users.FindAsync(id);
+                if (usuario == null)
+                {
+                    return NotFound(new { mensaje = "Usuario no encontrado." });
+                }
+
+                _context.Users.Remove(usuario);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { mensaje = "Usuario eliminado correctamente." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = "Error al eliminar el usuario", detalle = ex.Message });
+            }
+        }
     }
 }
