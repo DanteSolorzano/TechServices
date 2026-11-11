@@ -12,7 +12,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("https://enteck.vercel.app") // <--- NUEVA URL DE VERCEL
+        policy.WithOrigins("https://enteck.vercel.app") 
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
