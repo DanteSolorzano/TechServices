@@ -1,0 +1,224 @@
+/* Variables de color basadas en tu app */
+:host {
+  --primary-color: #667eea;
+  --primary-dark: #764ba2;
+  --dark-bg: #1a1a1a;
+  --whatsapp-color: #25d366;
+  --whatsapp-hover: #1eb854;
+  display: block;
+  background: #f4f7f6;
+  min-height: calc(100vh - 70px); /* Resta el navbar */
+}
+
+.landing-page {
+  font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+}
+
+/* =========================================
+   SECCIÓN HERO
+   ========================================= */
+.hero-section {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  color: white;
+  padding: 4rem 1.5rem; /* Reducido de 6rem a 4rem */
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Efecto de fondo */
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(102,126,234,0.1) 0%, transparent 60%);
+  z-index: 0;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.hero-content h1 {
+  font-size: 3.5rem;
+  margin-bottom: 1rem; /* Reducido un poco */
+  line-height: 1.2;
+}
+
+.hero-content .highlight {
+  color: #00e5ff;
+  background: linear-gradient(135deg, #667eea, #00e5ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-content p {
+  font-size: 1.2rem;
+  color: #ccc;
+  margin-bottom: 0; /* Quitamos el margen inferior ya que quitamos los botones */
+  line-height: 1.6;
+}
+
+/* =========================================
+   SECCIÓN DE SERVICIOS
+   ========================================= */
+.services-section {
+  padding: 3rem 1.5rem; /* Reducido de 5rem a 3rem */
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 2rem; /* Reducido de 3rem a 2rem */
+}
+
+.section-header h2 {
+  font-size: 2.2rem; /* Ligeramente más pequeño */
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.section-header p {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem; /* Reducido el gap entre tarjetas */
+}
+
+.service-card {
+  background: white;
+  padding: 2rem; /* Reducido de 2.5rem */
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  border: 1px solid #eee;
+}
+
+.service-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 30px rgba(102, 126, 234, 0.15);
+  border-color: #667eea;
+}
+
+.service-card .icon {
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+}
+
+.service-card h3 {
+  font-size: 1.3rem;
+  color: #222;
+  margin-bottom: 0.8rem;
+}
+
+.service-card p {
+  color: #666;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+/* =========================================
+   SECCIÓN DE CONTACTO / CTA
+   ========================================= */
+.contact-section {
+  padding: 2rem 1.5rem 4rem; /* Reducido de 4rem 2rem 6rem a 2rem 1.5rem 4rem */
+  display: flex;
+  justify-content: center;
+}
+
+.contact-card {
+  background: linear-gradient(135deg, #2d2d2d, #1a1a1a);
+  padding: 3rem 2rem; /* Reducido de 4rem 3rem */
+  border-radius: 20px;
+  text-align: center;
+  max-width: 800px;
+  width: 100%;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  color: white;
+  border-top: 4px solid #667eea;
+}
+
+.contact-card h2 {
+  font-size: 2rem; /* Ligeramente más pequeño */
+  margin-bottom: 1rem;
+}
+
+.contact-card p {
+  color: #bbb;
+  font-size: 1.1rem;
+  margin-bottom: 2rem; /* Reducido de 2.5rem */
+}
+
+.contact-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-whatsapp {
+  background: var(--whatsapp-color);
+  color: white;
+  padding: 14px 28px;
+  border-radius: 8px;
+  font-weight: bold;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+}
+
+.btn-whatsapp:hover {
+  background: var(--whatsapp-hover);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(37, 211, 102, 0.5);
+}
+
+.btn-primary, .btn-secondary {
+  padding: 14px 28px;
+  border-radius: 8px;
+  font-weight: bold;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  display: inline-flex;        /* <-- ESTO ARREGLA EL PROBLEMA */
+  align-items: center;         /* <-- Centra el texto verticalmente */
+  justify-content: center;     /* <-- Centra el texto horizontalmente */
+  box-sizing: border-box;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: white;
+  border: 2px solid white;
+}
+
+.btn-secondary:hover {
+  background: white;
+  color: #1a1a1a;
+  transform: translateY(-3px);
+}
+
+/* Responsivo para móviles */
+@media (max-width: 768px) {
+  .hero-content h1 { font-size: 2.5rem; }
+  .hero-section { padding: 3rem 1.5rem; }
+  .services-section { padding: 2rem 1.5rem; }
+  .contact-section { padding: 1rem 1.5rem 3rem; }
+  .contact-card { padding: 2rem 1.5rem; }
+  .contact-actions { flex-direction: column; }
+}
+
