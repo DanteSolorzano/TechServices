@@ -3,7 +3,7 @@
   <!-- Contenido -->
   <div class="admin-content">
     
-    <!-- NUEVO: Encabezado Personalizado -->
+    <!-- Encabezado Personalizado -->
     <div class="welcome-header">
       <h2>👋 ¡Hola, <span class="highlight">{{ currentUserName() }}</span>!</h2>
       <p>Bienvenido al panel de control de EnTeck</p>
@@ -12,7 +12,7 @@
     <!-- Navegación por Pestañas -->
     <div class="tabs-nav">
       <button class="tab-btn" [class.active]="activeTab() === 'reparto'" (click)="activeTab.set('reparto')">
-        📋 Reparto de Órdenes
+        📋 Administracion de Servicios
       </button>
       <button class="tab-btn" [class.active]="activeTab() === 'usuarios'" (click)="activeTab.set('usuarios')">
         👥 Gestión de Usuarios
@@ -27,56 +27,104 @@
 
     <!-- SECCIÓN 1: REPARTO DE ÓRDENES A TÉCNICOS (US-011) -->
     @if (activeTab() === 'reparto') {
-      <div style="margin-bottom: 15px;">
-        <h3>📋 Solicitudes Pendientes de Asignación</h3>
-        <p style="font-size: 13px; color: #666;">Selecciona un técnico para asignarle la orden de reparación.</p>
+      
+      <!-- TABLA 1: PENDIENTES DE ASIGNACIÓN -->
+      <div class="table-section">
+        <div style="margin-bottom: 15px;">
+          <h3>⏳ Solicitudes Pendientes de Asignación</h3>
+          <p style="font-size: 13px; color: #666;">Selecciona un técnico para asignarle la orden de reparación.</p>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>ID / Folio</th>
+              <th>Dispositivo</th>
+              <th>Falla Reportada</th>
+              <th>Técnico Asignado</th>
+              <th>Asignar Técnico</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (orden of ordenesSinAsignar(); track orden.id) {
+              <tr>
+                <td><strong>#{{ orden.id }}</strong></td>
+                <td>{{ orden.marca }} {{ orden.modelo }}</td>
+                <td>{{ orden.problema }}</td>
+                <td>
+                  <strong>{{ orden.nombreTecnico || 'Sin Asignar' }}</strong>
+                </td>
+                <td>
+                  <select class="select-tec" (change)="asignarTecnico(orden.id, $event)">
+                    <option value="" selected>-- Seleccionar Técnico --</option>
+                    @for (tec of tecnicos(); track tec.id) {
+                      <option [value]="tec.id">
+                        👤 {{ tec.nombre }}
+                      </option>
+                    }
+                  </select>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" style="text-align: center; color: #888; padding: 2rem;">
+                  🎉 No hay órdenes pendientes de asignación en este momento.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
       </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>ID / Folio</th>
-            <th>Dispositivo</th>
-            <th>Falla Reportada</th>
-            <th>Estado</th>
-            <th>Técnico Asignado</th>
-            <th>Asignar Técnico</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (orden of ordenesPendientes(); track orden.id) {
+      <!-- TABLA 2: ÓRDENES ACTIVAS (YA ASIGNADAS) -->
+      <div class="table-section" style="margin-top: 40px;">
+        <div style="margin-bottom: 15px;">
+          <h3>🛠️ Órdenes Activas</h3>
+          <p style="font-size: 13px; color: #666;">Estas órdenes ya tienen un técnico asignado y están en proceso.</p>
+        </div>
+
+        <table>
+          <thead>
             <tr>
-              <td><strong>#{{ orden.id }}</strong></td>
-              <td>{{ orden.marca }} {{ orden.modelo }}</td>
-              <td>{{ orden.problema }}</td>
-              <td>
-                <span class="stock-badge low-stock">
-                  {{ orden.estado || 'Recibido' }}
-                </span>
-              </td>
-              <td>
-                <strong>{{ orden.nombreTecnico || 'Sin Asignar' }}</strong>
-              </td>
-              <td>
-                <select class="select-tec" (change)="asignarTecnico(orden.id, $event)">
-                  <option value="" [selected]="!orden.idTecnico">-- Seleccionar Técnico --</option>
-                  @for (tec of tecnicos(); track tec.id) {
-                    <option [value]="tec.id" [selected]="orden.idTecnico === tec.id">
-                      👤 {{ tec.nombre }}
-                    </option>
-                  }
-                </select>
-              </td>
+              <th>Acciones</th>
+              <th>ID / Folio</th>
+              <th>Dispositivo</th>
+              <th>Falla Reportada</th>
+              <th>Estado</th>
+              <th>Técnico Asignado</th>
             </tr>
-          } @empty {
-            <tr>
-              <td colspan="6" style="text-align: center; color: #888; padding: 2rem;">
-                🎉 No hay órdenes pendientes de asignación en este momento.
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (orden of ordenesActivas(); track orden.id) {
+              <tr>
+                <td>
+                  <button class="btn btn-finish" (click)="finalizarOrden(orden.id)" title="Marcar como Listo">
+                    ✅ Finalizar
+                  </button>
+                </td>
+                <td><strong>#{{ orden.id }}</strong></td>
+                <td>{{ orden.marca }} {{ orden.modelo }}</td>
+                <td>{{ orden.problema }}</td>
+                <td>
+                  <span class="stock-badge low-stock">
+                    {{ orden.estado || 'En Diagnostico' }} <!-- CAMBIADO AQUÍ -->
+                  </span>
+                </td>
+                <td>
+                  <strong>{{ orden.nombreTecnico }}</strong>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" style="text-align: center; color: #888; padding: 2rem;">
+                  No hay órdenes activas en este momento.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
     }
 
     <!-- SECCIÓN 2: GESTIÓN DE USUARIOS CON TRES ROLES -->
@@ -211,7 +259,7 @@
       </div>
     }
 
-    <!-- SECCIÓN 3: MÉTRICAS Y REPORTES DE RENDIMIENTO (US-016) -->
+        <!-- SECCIÓN 3: MÉTRICAS Y REPORTES DE RENDIMIENTO (US-016) -->
     @if (activeTab() === 'reportes') {
       <div style="margin-bottom: 15px;">
         <h3>📊 Métricas y Reportes Operativos</h3>
@@ -285,6 +333,48 @@
             }
           </tbody>
         </table>
+
+        <!-- NUEVA TABLA: ÓRDENES FINALIZADAS -->
+        <div class="table-section" style="margin-top: 40px;">
+          <h3>✅ Historial de Órdenes Finalizadas</h3>
+          <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Órdenes que ya han sido entregadas o completadas.</p>
+          
+          <table>
+            <thead>
+              <tr>
+                <th>ID / Folio</th>
+                <th>Técnico</th>
+                <th>Dispositivo</th>
+                <th>Falla Reportada</th>
+                <th>Fecha Recibido</th>
+                <th>Fecha Finalización</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (orden of ordenesFinalizadas(); track orden.id) {
+                <tr>
+                  <td><strong>#{{ orden.id }}</strong></td>
+                  <td>👤 {{ orden.nombreTecnico || 'Sin Asignar' }}</td>
+                  <td>{{ orden.marca }} {{ orden.modelo }}</td>
+                  <td>{{ orden.problema }}</td>
+                  <td>{{ orden.fechaRecibido | date:'shortDate' }}</td>
+                  <td>
+                    <strong style="color: #28a745;">
+                      {{ orden.fechaFinalizacion ? (orden.fechaFinalizacion | date:'shortDate') : 'No registrada' }}
+                    </strong>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="6" style="text-align: center; color: #888; padding: 2rem;">
+                    Aún no hay órdenes finalizadas.
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
       } @else {
         <div style="text-align: center; padding: 3rem; color: #666;">
           Cargando reporte de rendimiento...

@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, signal, inject, OnInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -6,7 +6,7 @@ import { MenuItem } from '../../models/menu-item.model';
 import { User } from '../../models/user.model';
 import { ServiceOrder, ReporteRendimiento } from '../../models/service-order.model';
 import { ServiceOrderService } from '../../services/service-order.service';
-import { AuthService } from '../../services/auth.service'; // <-- NUEVO
+import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -19,13 +19,32 @@ import { environment } from '../../../environments/environment';
 export class AdminDashboardComponent implements OnInit {
   private serviceOrderService = inject(ServiceOrderService);
   private httpClient = inject(HttpClient);
-  private authService = inject(AuthService); // <-- NUEVO
+  private authService = inject(AuthService);
 
-  // NUEVA SEÑAL PARA EL NOMBRE DEL USUARIO
   currentUserName = signal<string>('Administrador');
 
-  activeTab = signal<'inventario' | 'reparto' | 'usuarios' | 'reportes'>('inventario');
-  ordenesPendientes = signal<ServiceOrder[]>([]);
+  activeTab = signal<'inventario' | 'reparto' | 'usuarios' | 'reportes'>('reparto');
+  
+  todasLasOrdenes = signal<ServiceOrder[]>([]); 
+  
+  // Filtramos las que no tienen técnico
+  ordenesSinAsignar = computed(() => 
+    this.todasLasOrdenes().filter(o => !o.idTecnico || o.idTecnico === 0)
+  );
+  
+  // Filtramos las que tienen técnico Y que NO estén en estado "Listo"
+  ordenesActivas = computed(() => 
+    this.todasLasOrdenes().filter(o => 
+      o.idTecnico && o.idTecnico > 0 && 
+      o.estado !== 'Listo'
+    )
+  );
+
+  // NUEVO: Filtramos las que ya están listas
+  ordenesFinalizadas = computed(() => 
+    this.todasLasOrdenes().filter(o => o.estado === 'Listo')
+  );
+
   usuarios = signal<User[]>([]);
   tecnicos = signal<{ id: number; nombre: string }[]>([]);
 
@@ -54,7 +73,6 @@ export class AdminDashboardComponent implements OnInit {
   ]);
 
   ngOnInit() {
-    // OBTENER EL NOMBRE DEL USUARIO LOGUEADO
     const user = this.authService.getCurrentUser();
     if (user && user.nombre) {
       this.currentUserName.set(user.nombre);
@@ -72,7 +90,7 @@ export class AdminDashboardComponent implements OnInit {
           this.usuarios.set(users);
           
           const soloTecnicos = users.filter(u => {
-            return !u.esAdmin && u.nivelPrivilegio === 1; // 1 = Técnico
+            return !u.esAdmin && u.nivelPrivilegio === 1;
           }).map(u => ({ id: u.id, nombre: u.nombre }));
 
           this.tecnicos.set(soloTecnicos);
@@ -168,7 +186,7 @@ export class AdminDashboardComponent implements OnInit {
 
   cargarOrdenesPendientes() {
     this.serviceOrderService.getPendientes().subscribe({
-      next: (data) => this.ordenesPendientes.set(data),
+      next: (data) => this.todasLasOrdenes.set(data),
       error: (err) => console.error('Error al cargar órdenes:', err)
     });
   }
@@ -188,6 +206,23 @@ export class AdminDashboardComponent implements OnInit {
       },
       error: (err) => console.error('Error al asignar técnico:', err)
     });
+  }
+
+  // FINALIZAR ORDEN
+  finalizarOrden(ordenId: number) {
+    if (confirm('¿Estás seguro de que deseas marcar esta orden como Lista y finalizarla?')) {
+      this.serviceOrderService.finalizarOrden(ordenId).subscribe({
+        next: () => {
+          alert(`¡Orden #${ordenId} marcada como Lista!`);
+          this.cargarOrdenesPendientes(); 
+          this.cargarReportes(); 
+        },
+        error: (err) => {
+          console.error('Error al finalizar la orden:', err);
+          alert('Hubo un problema al finalizar la orden.');
+        }
+      });
+    }
   }
 
   getEmptyItem(): MenuItem {

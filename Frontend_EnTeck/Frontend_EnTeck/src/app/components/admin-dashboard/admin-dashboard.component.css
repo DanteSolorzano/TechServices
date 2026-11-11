@@ -33,7 +33,7 @@
 }
 
 .welcome-header .highlight {
-  color: #667eea; /* El color de acento de la app */
+  color: #667eea;
   font-weight: bold;
 }
 
@@ -243,4 +243,28 @@ table tr:hover {
   background: #f0f7ff;
   font-size: 12px;
   font-weight: bold;
+}
+
+/* NUEVO: Separador de Tablas */
+.table-section {
+  width: 100%;
+}
+
+/* ... (todo tu CSS anterior se mantiene igual) ... */
+
+/* Agrega esto al final de tu archivo CSS */
+.btn-finish {
+  background: #10b981; /* Verde esmeralda */
+  color: white;
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.2s;
+}
+
+.btn-finish:hover {
+  background: #059669;
 }

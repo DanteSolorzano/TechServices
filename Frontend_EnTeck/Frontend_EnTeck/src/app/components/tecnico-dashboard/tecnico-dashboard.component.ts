@@ -16,7 +16,6 @@ export class TecnicoDashboardComponent implements OnInit {
   private serviceOrderService = inject(ServiceOrderService);
   private authService = inject(AuthService);
 
-  // NUEVA SEÑAL PARA EL NOMBRE
   currentUserName = signal<string>('Técnico');
 
   misOrdenes = signal<ServiceOrder[]>([]);
@@ -24,12 +23,10 @@ export class TecnicoDashboardComponent implements OnInit {
   notificandoMap = signal<{ [key: number]: boolean }>({});
 
   ngOnInit() {
-    // OBTENER EL NOMBRE DEL USUARIO LOGUEADO
     const user = this.authService.getCurrentUser();
     if (user && user.nombre) {
       this.currentUserName.set(user.nombre);
     }
-
     this.cargarMisOrdenes();
   }
 
@@ -64,7 +61,7 @@ export class TecnicoDashboardComponent implements OnInit {
     const orden = this.misOrdenes().find(o => o.id === ordenId);
     if (!orden) return;
 
-    const diagnostico = (orden as any).diagnostico || (orden as any).diagnosticoTecnico || '';
+    const diagnostico = (orden as any).diagnostico || '';
     const piezas = orden.piezasUtilizadas || '';
 
     this.serviceOrderService.registrarDiagnostico(
@@ -75,6 +72,10 @@ export class TecnicoDashboardComponent implements OnInit {
     ).subscribe({
       next: () => {
         orden.estado = nuevoEstado;
+        // Si cambia a Listo, lo sacamos de la vista del técnico
+        if (nuevoEstado === 'Listo') {
+          this.cargarMisOrdenes();
+        }
         alert(`¡Estado de la orden #${ordenId} actualizado a "${nuevoEstado}"!`);
       },
       error: (err) => {
@@ -87,7 +88,7 @@ export class TecnicoDashboardComponent implements OnInit {
   guardarDiagnostico(orden: ServiceOrder) {
     if (!orden) return;
 
-    const diagnostico = (orden as any).diagnostico || (orden as any).diagnosticoTecnico || '';
+    const diagnostico = (orden as any).diagnostico || '';
     const piezas = orden.piezasUtilizadas || '';
     const estado = orden.estado || 'En Diagnostico';
 
@@ -118,7 +119,7 @@ export class TecnicoDashboardComponent implements OnInit {
     const nombreCliente = ord.nombreCliente || ord.cliente || 'Cliente';
 
     const mensaje = encodeURIComponent(
-      `Hola ${nombreCliente}, te saludamos de EnTeck. Tu dispositivo ${orden.marca || ''} ${orden.modelo || ''} (Orden #${orden.id}) se encuentra en estado: *${orden.estado || 'En Proceso'}*.`
+      `Hola ${nombreCliente}, te saludamos de EnTeck. Tu dispositivo ${orden.marca || ''} ${orden.modelo || ''} (Orden #${orden.id}) se encuentra en estado: *${orden.estado || 'En Diagnostico'}*.`
     );
 
     const urlWhatsApp = `https://api.whatsapp.com/send?phone=${telefono}&text=${mensaje}`;

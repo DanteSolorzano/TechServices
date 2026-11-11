@@ -1,60 +1,235 @@
-.tracking-container { padding: 40px 20px; background: #f4f7f6; min-height: 100vh; }
-.tracking-content { max-width: 900px; margin: 0 auto; }
+.tracking-container {
+  padding: 40px 20px;
+  background: #f4f7f6;
+  min-height: calc(100vh - 70px);
+  display: flex;
+  justify-content: center;
+}
 
-h2 { margin: 0 0 10px 0; color: #333; }
-.subtitle { color: #666; margin-bottom: 25px; font-size: 14px; }
+.tracking-content {
+  max-width: 900px;
+  width: 100%;
+}
+
+h2 {
+  margin: 0 0 10px 0;
+  color: #333;
+}
+
+.subtitle {
+  color: #666;
+  margin-bottom: 25px;
+  font-size: 14px;
+}
 
 /* Search Box */
-.search-box { display: flex; gap: 10px; margin-bottom: 30px; }
-.search-box input { flex: 1; padding: 12px 16px; border: 2px solid #ddd; border-radius: 8px; font-size: 15px; outline: none; transition: border-color 0.2s; }
-.search-box input:focus { border-color: #007bff; }
-.search-box button { padding: 12px 24px; background: #007bff; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
-.search-box button:hover { background: #0056b3; }
-.search-box button:disabled { background: #ccc; cursor: not-allowed; }
+.search-box {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.search-box input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.search-box input:focus {
+  border-color: #007bff;
+}
+
+.search-box button {
+  padding: 12px 24px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.search-box button:hover {
+  background: #0056b3;
+}
+
+.search-box button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
 
 /* Loading & Error */
-.loading { text-align: center; padding: 40px; background: white; border-radius: 12px; color: #007bff; font-weight: bold; }
-.spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #007bff; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 10px; vertical-align: middle; }
-.error-msg { color: #d32f2f; background: #ffebee; padding: 15px 20px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 20px; }
+.loading {
+  text-align: center;
+  padding: 40px;
+  background: white;
+  border-radius: 12px;
+  color: #007bff;
+  font-weight: bold;
+}
+
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
+.error-msg {
+  color: #d32f2f;
+  background: #ffebee;
+  padding: 15px 20px;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
 
 /* Card */
-.orders-list { display: grid; gap: 20px; }
-.order-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 5px solid #007bff; transition: transform 0.2s, box-shadow 0.2s; }
-.order-card:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
+.orders-list {
+  display: grid;
+  gap: 20px;
+}
 
-/* Variaciones por Estado */
-.order-card.status-recibido { border-left-color: #6c757d; }
-.order-card.status-en-proceso { border-left-color: #007bff; }
-.order-card.status-esperando-refaccion { border-left-color: #ff9800; }
-.order-card.status-reparado { border-left-color: #28a745; }
-.order-card.status-entregado { border-left-color: #17a2b8; }
+.order-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border-left: 5px solid #007bff;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
 
-.order-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
-.order-info h3 { margin: 0; color: #333; font-size: 18px; }
-.order-info .problem { margin: 5px 0 0 0; color: #666; font-size: 14px; }
-.order-id { background: #eef2f5; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; color: #333; }
+.order-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
 
-.order-details { margin-bottom: 15px; }
-.detail-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; border-bottom: 1px solid #f9f9f9; }
-.detail-row .label { font-weight: 600; color: #555; }
-.detail-row span { color: #333; }
-.eta-highlight { font-weight: bold; color: #007bff !important; }
+/* ACTUALIZADO: Variaciones por Estado */
+.order-card.status-pendiente { border-left-color: #6c757d; }
+.order-card.status-en-diagnostico { border-left-color: #ff9800; }
+.order-card.status-en-reparacion { border-left-color: #007bff; }
+.order-card.status-listo { border-left-color: #28a745; }
 
-/* Badges */
-.status-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-block; }
-.badge-recibido { background: #e9ecef; color: #495057; }
-.badge-en-proceso { background: #e3f2fd; color: #0d47a1; }
-.badge-esperando-refaccion { background: #fff3e0; color: #e65100; }
-.badge-reparado { background: #e8f5e9; color: #1b5e20; }
-.badge-entregado { background: #e0f7fa; color: #006064; }
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.order-info h3 {
+  margin: 0;
+  color: #333;
+  font-size: 18px;
+}
+
+.order-info .problem {
+  margin: 5px 0 0 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.order-id {
+  background: #eef2f5;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #333;
+}
+
+.order-details {
+  margin-bottom: 15px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  font-size: 14px;
+  border-bottom: 1px solid #f9f9f9;
+}
+
+.detail-row .label {
+  font-weight: 600;
+  color: #555;
+}
+
+.detail-row span {
+  color: #333;
+}
+
+.eta-highlight {
+  font-weight: bold;
+  color: #007bff !important;
+}
+
+/* ACTUALIZADO: Badges de Estado */
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  display: inline-block;
+}
+
+.badge-pendiente { background: #e9ecef; color: #495057; }
+.badge-en-diagnostico { background: #fff3e0; color: #e65100; }
+.badge-en-reparacion { background: #e3f2fd; color: #0d47a1; }
+.badge-listo { background: #e8f5e9; color: #1b5e20; }
 
 /* Progress */
-.progress-container { margin-top: 15px; }
-.progress-bar { height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; margin-bottom: 5px; }
-.progress-fill { height: 100%; background: #007bff; transition: width 0.5s ease; }
-.progress-text { font-size: 11px; color: #888; display: block; text-align: right; }
+.progress-container {
+  margin-top: 15px;
+}
 
-.no-orders { text-align: center; padding: 40px 20px; background: white; border-radius: 12px; color: #999; }
-.no-orders p { margin: 15px 0 0 0; font-size: 15px; }
+.progress-bar {
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 5px;
+}
 
-@keyframes spin { 100% { transform: rotate(360deg); } }
+.progress-fill {
+  height: 100%;
+  background: #007bff;
+  transition: width 0.5s ease;
+}
+
+.progress-text {
+  font-size: 11px;
+  color: #888;
+  display: block;
+  text-align: right;
+}
+
+.no-orders {
+  text-align: center;
+  padding: 40px 20px;
+  background: white;
+  border-radius: 12px;
+  color: #999;
+}
+
+.no-orders p {
+  margin: 15px 0 0 0;
+  font-size: 15px;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}

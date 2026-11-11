@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
 import { ClientsService } from '../../services/clients.service';
+import { ServiceOrderService } from '../../services/service-order.service';
+import { ServiceOrder } from '../../models/service-order.model';
 import { environment } from '../../../environments/environment'; 
 
 @Component({
@@ -19,15 +21,19 @@ export class ServiceRequestComponent implements OnInit {
   loading = signal(false);
   error = signal('');
   clientName = signal('');
+  
+  misSolicitudes = signal<ServiceOrder[]>([]);
 
   data = { brand: '', model: '', issue: '' };
 
   private httpClient = inject(HttpClient);
   private authService = inject(AuthService);
   private clientsService = inject(ClientsService);
+  private serviceOrderService = inject(ServiceOrderService);
 
   ngOnInit(): void {
     this.loadClientData();
+    this.cargarMisSolicitudes();
   }
 
   private loadClientData(): void {
@@ -48,6 +54,29 @@ export class ServiceRequestComponent implements OnInit {
     });
   }
 
+  cargarMisSolicitudes(): void {
+    const userId = this.authService.getCookie('userId');
+    if (!userId) return;
+
+    this.serviceOrderService.getClientOrders(userId).subscribe({
+      next: (orders) => {
+        this.misSolicitudes.set(orders || []);
+      },
+      error: (err) => console.error('Error al cargar solicitudes:', err)
+    });
+  }
+
+  // CORREGIDO: Quita acentos y espacios para que las clases CSS coincidan siempre
+  getStatusClass(status: string): string {
+    if (!status) return 'pendiente';
+    return status
+      .toLowerCase()
+      .trim()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Elimina acentos
+      .replace(/\s+/g, '-');           // Reemplaza espacios por guiones
+  }
+
   isValid(): boolean {
     return !!this.data.brand && !!this.data.model && !!this.data.issue;
   }
@@ -65,22 +94,22 @@ export class ServiceRequestComponent implements OnInit {
     this.error.set('');
 
     const now = new Date();
-    const eta = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours from now
+    const eta = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
     const payload = {
       idCliente: parseInt(userId),
       marca: this.data.brand,
       modelo: this.data.model,
       problema: this.data.issue,
-      estado: 'Pending',
+      estado: 'Pendiente', // Estado inicial oficial
       eta: eta.toISOString()
     };
 
-    // CAMBIO: Usando environment.apiUrl
     this.httpClient.post(`${environment.apiUrl}/api/service-order`, payload).subscribe({
       next: () => {
         this.sent.set(true);
         this.loading.set(false);
+        this.cargarMisSolicitudes();
       },
       error: (err) => {
         console.error('Failed to submit service order:', err);

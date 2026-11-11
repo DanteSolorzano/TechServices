@@ -12,6 +12,7 @@ export interface ServiceOrder {
   idTecnico?: number;
   nombreTecnico?: string;
   fechaAsignacion?: string;
+  fechaFinalizacion?: string; // <-- NUEVA PROPIEDAD
   diagnostico?: string;
   piezasUtilizadas?: string;
 }

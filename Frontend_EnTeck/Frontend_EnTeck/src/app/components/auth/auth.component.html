@@ -1,11 +1,6 @@
 <div class="auth-container">
   <div class="auth-card fade-in">
 
-    <!-- Botón de regreso al tracking -->
-    <a routerLink="/tracking" class="back-link">
-      ← Volver al rastreo
-    </a>
-
     <h2>{{ isRegistering() ? 'Crear Cuenta' : 'Iniciar Sesión' }}</h2>
     <p class="subtitle">
       {{ isRegistering() ? 'Regístrate para ver el estatus de tus equipos.' : 'Ingresa para ver tus reparaciones.' }}

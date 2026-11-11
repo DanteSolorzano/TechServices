@@ -43,9 +43,8 @@ public class SolicitudesController : ControllerBase
     [HttpGet("tecnico/{tecnicoId}")]
     public async Task<IActionResult> GetPorTecnico(int tecnicoId)
     {
-        // CORREGIDO: Solo trae las órdenes que están asignadas estrictamente a este técnico.
         var solicitudes = await _context.SolicitudesServicio
-            .Where(s => s.IdTecnico == tecnicoId)
+            .Where(s => s.IdTecnico == tecnicoId && s.Estado != "Listo") 
             .OrderByDescending(s => s.Id)
             .ToListAsync();
 
@@ -90,11 +89,13 @@ public class SolicitudesController : ControllerBase
         var solicitudes = await query.ToListAsync();
 
         var totalOrdenes = solicitudes.Count;
-        var completadas = solicitudes.Count(s => s.Estado == "Entregado" || s.Estado == "Reparado" || s.Estado == "Completado");
-        var enProceso = solicitudes.Count(s => s.Estado == "En Diagnóstico" || s.Estado == "En Reparación" || s.Estado == "En Proceso");
-        var pendientes = solicitudes.Count(s => s.Estado == "Recibido" || s.Estado == "Pendiente" || string.IsNullOrEmpty(s.Estado));
+        
+        // LÓGICA ACTUALIZADA SEGÚN TUS REQUERIMIENTOS
+        var completadas = solicitudes.Count(s => s.Estado == "Listo");
+        var enProceso = solicitudes.Count(s => s.Estado == "En Diagnostico" || s.Estado == "En Reparacion");
+        var pendientes = solicitudes.Count(s => !s.IdTecnico.HasValue || s.IdTecnico.Value == 0);
 
-        // Métrica por técnicos
+        // Métrica por técnicos (solo los que tienen técnico asignado)
         var rendimientoTecnicos = solicitudes
             .Where(s => s.IdTecnico.HasValue && s.IdTecnico.Value > 0)
             .GroupBy(s => new { IdTecnico = s.IdTecnico!.Value, Nombre = string.IsNullOrWhiteSpace(s.NombreTecnico) ? "Técnico General" : s.NombreTecnico })
@@ -103,8 +104,8 @@ public class SolicitudesController : ControllerBase
                 TecnicoId = g.Key.IdTecnico,
                 NombreTecnico = g.Key.Nombre,
                 OrdenesAsignadas = g.Count(),
-                OrdenesFinalizadas = g.Count(s => s.Estado == "Entregado" || s.Estado == "Reparado" || s.Estado == "Completado"),
-                OrdenesEnProceso = g.Count(s => s.Estado == "En Diagnóstico" || s.Estado == "En Reparación" || s.Estado == "En Proceso")
+                OrdenesFinalizadas = g.Count(s => s.Estado == "Listo"),
+                OrdenesEnProceso = g.Count(s => s.Estado == "En Diagnostico" || s.Estado == "En Reparacion")
             })
             .ToList();
 
@@ -142,9 +143,9 @@ public class SolicitudesController : ControllerBase
         {
             orden.Estado = dto.Estado;
         }
-        else if (string.IsNullOrEmpty(orden.Estado) || orden.Estado == "Recibido" || orden.Estado == "Pendiente")
+        else if (string.IsNullOrEmpty(orden.Estado) || orden.Estado == "Pendiente")
         {
-            orden.Estado = "En Proceso";
+            orden.Estado = "En Diagnostico";
         }
 
         if (!string.IsNullOrWhiteSpace(dto.Eta))
@@ -152,6 +153,17 @@ public class SolicitudesController : ControllerBase
             if (DateTime.TryParse(dto.Eta, out var fechaParseada))
             {
                 orden.Eta = fechaParseada;
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(dto.Estado))
+        {
+            orden.Estado = dto.Estado;
+            
+            // NUEVO: Si el estado pasa a Listo, guardamos la fecha de finalización
+            if (orden.Estado == "Listo")
+            {
+                orden.FechaFinalizacion = DateTime.Now;
             }
         }
 

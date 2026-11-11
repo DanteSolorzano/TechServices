@@ -46,4 +46,7 @@ public class SolicitudServicio
 
     [Column("piezas_utilizadas")]
     public string? PiezasUtilizadas { get; set; }
+
+    [Column("fecha_finalizacion")]
+    public DateTime? FechaFinalizacion { get; set; }
 }

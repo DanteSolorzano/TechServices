@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { ServiceOrderService } from '../../services/service-order.service';
-import { ServiceOrder } from '../../models/service-order.model'; // <-- CAMBIO: Importado desde models
+import { ServiceOrder } from '../../models/service-order.model';
 
 @Component({
   selector: 'app-tracking',
@@ -24,11 +24,8 @@ export class TrackingComponent implements OnInit {
   private serviceOrderService = inject(ServiceOrderService);
 
   ngOnInit(): void {
-    // 1. Obtener parámetro 'folio' o 'id' de la URL nativa (ej. /tracking?folio=2 o /tracking?id=2)
     const urlParams = new URLSearchParams(window.location.search);
     const folioFromUrl = urlParams.get('folio') || urlParams.get('id');
-
-    // 2. También verificar por parámetro de ActivatedRoute por si acaso
     const paramId = folioFromUrl || this.route.snapshot.paramMap.get('id') || this.route.snapshot.queryParamMap.get('folio');
 
     if (paramId) {
@@ -63,7 +60,7 @@ export class TrackingComponent implements OnInit {
   }
 
   sanitizeClass(estado: string): string {
-    if (!estado) return 'recibido';
+    if (!estado) return 'pendiente';
     return estado
       .toLowerCase()
       .normalize('NFD')
@@ -72,7 +69,7 @@ export class TrackingComponent implements OnInit {
   }
 
   getStatusText(estado: string): string {
-    if (!estado) return 'Recibido';
+    if (!estado) return 'Pendiente';
     return estado;
   }
 
@@ -88,16 +85,16 @@ export class TrackingComponent implements OnInit {
     }
   }
 
+  // ACTUALIZADO: Mapa de progreso según los nuevos estados
   getProgress(estado: string): number {
     if (!estado) return 20;
     const norm = this.sanitizeClass(estado);
     const progressMap: { [key: string]: number } = {
-      'recibido': 20,
-      'en-proceso': 50,
-      'esperando-refaccion': 65,
-      'reparado': 90,
-      'entregado': 100
+      'pendiente': 20,
+      'en-diagnostico': 40,
+      'en-reparacion': 70,
+      'listo': 100
     };
-    return progressMap[norm] || 30;
+    return progressMap[norm] || 20;
   }
 }

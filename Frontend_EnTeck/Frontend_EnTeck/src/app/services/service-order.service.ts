@@ -66,8 +66,14 @@ export class ServiceOrderService {
     });
   }
 
-  // CORREGIDO: Ahora solo hace la petición HTTP directa. 
-  // Si el backend no devuelve nada, Angular recibe un array vacío.
+  // NUEVO MÉTODO PARA FINALIZAR LA ORDEN
+  finalizarOrden(ordenId: number): Observable<any> {
+    // Reutilizamos el endpoint de asignar, pero solo enviamos el estado
+    return this.http.put(`${this.apiUrl}/${ordenId}/asignar`, {
+      estado: 'Listo'
+    });
+  }
+
   getOrdenesPorTecnico(tecnicoId: number): Observable<ServiceOrder[]> {
     return this.http.get<ServiceOrder[]>(`${this.apiUrl}/tecnico/${tecnicoId}`);
   }

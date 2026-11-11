@@ -1,6 +1,6 @@
 <div class="tech-panel-container">
 
-  <!-- NUEVO: Encabezado Personalizado -->
+  <!-- Encabezado Personalizado -->
   <div class="welcome-header">
     <h2>👋 ¡Hola, <span class="highlight">{{ currentUserName() }}</span>!</h2>
     <p>Gestiona el diagnóstico y estado de tus reparaciones asignadas.</p>
@@ -52,7 +52,6 @@
             <select class="status-select" [value]="orden.estado" (change)="cambiarEstado(orden.id, $event)">
               <option value="En Diagnostico">🟡 En Diagnóstico</option>
               <option value="En Reparacion">🔵 En Reparación</option>
-              <option value="Esperando Repuesto">🟠 Esperando Repuesto</option>
               <option value="Listo">🟢 Listo para Entrega</option>
             </select>
           </div>
