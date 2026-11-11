@@ -30,7 +30,7 @@ namespace Backend_EnTeck.Controllers
             return Ok(usuarios);
         }
 
-                // GET: api/clientes/{id}
+        // GET: api/clientes/{id}
         [HttpGet("{id}")]
         public async Task<IActionResult> GetClientePorId(int id)
         {
@@ -65,9 +65,10 @@ namespace Backend_EnTeck.Controllers
             try
             {
                 var user = await _context.Users
-                    .FirstOrDefaultAsync(u => u.Correo.ToLower() == request.Correo.ToLower().Trim() && u.Contrasena == request.Contrasena);
+                    .FirstOrDefaultAsync(u => u.Correo.ToLower() == request.Correo.ToLower().Trim());
 
-                if (user == null)
+                // VALIDACIÓN CON BCRYPT (Verifica si la contraseña en texto plano coincide con el hash)
+                if (user == null || !BCrypt.Net.BCrypt.Verify(request.Contrasena, user.Contrasena))
                 {
                     return Unauthorized(new { mensaje = "Correo o contraseña incorrectos." });
                 }
@@ -82,7 +83,8 @@ namespace Backend_EnTeck.Controllers
                     nombre = user.Nombre,
                     correo = user.Correo,
                     esAdmin = user.EsAdmin,
-                    rol = rolFinal
+                    rol = rolFinal,
+                    nivelPrivilegio = user.NivelPrivilegio
                 });
             }
             catch (Exception ex)
@@ -110,8 +112,11 @@ namespace Backend_EnTeck.Controllers
 
                 if (string.IsNullOrWhiteSpace(usuario.Contrasena))
                 {
-                    usuario.Contrasena = "123456";
+                    usuario.Contrasena = "123456"; // Contraseña por defecto
                 }
+
+                // ENCRIPTAMOS LA CONTRASEÑA (ya sea la que envió el admin o la de por defecto)
+                usuario.Contrasena = BCrypt.Net.BCrypt.HashPassword(usuario.Contrasena);
 
                 _context.Users.Add(usuario);
                 await _context.SaveChangesAsync();
@@ -124,7 +129,7 @@ namespace Backend_EnTeck.Controllers
             }
         }
 
-                // PUT: api/clientes/{id}
+        // PUT: api/clientes/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateCliente(int id, [FromBody] User usuarioActualizado)
         {
@@ -141,12 +146,13 @@ namespace Backend_EnTeck.Controllers
                     return NotFound(new { mensaje = "Usuario no encontrado." });
                 }
 
-                // Actualizar campos (Evitamos actualizar la contraseña desde aquí para mayor seguridad)
                 usuario.Nombre = usuarioActualizado.Nombre;
                 usuario.Correo = usuarioActualizado.Correo;
                 usuario.Telefono = usuarioActualizado.Telefono;
                 usuario.Direccion = usuarioActualizado.Direccion;
                 usuario.NivelPrivilegio = usuarioActualizado.NivelPrivilegio;
+
+                // NOTA: Aquí no actualizamos la contraseña para no romper el hash existente a menos que se envíe una nueva explícitamente.
 
                 await _context.SaveChangesAsync();
 

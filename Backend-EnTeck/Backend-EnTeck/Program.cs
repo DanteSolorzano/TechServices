@@ -6,7 +6,6 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddOpenApi();
 
 builder.Services.AddCors(options =>
@@ -22,24 +21,20 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Registrar HttpClient y WhatsAppService (US-014 / US-015)
 builder.Services.AddHttpClient<IWhatsAppService, WhatsAppService>();
-
-// Registrar controladores para rutas con atributos ([ApiController])
 builder.Services.AddControllers();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    app.MapScalarApiReference(); // Documentación interactiva de .NET 9
+    app.MapScalarApiReference(); 
 }
 
-//app.UseHttpsRedirection(); // Desactivado para evitar conflictos de CORS en local
+// app.UseHttpsRedirection();
 app.UseCors("AllowAll");
-app.MapControllers(); // <-- Aquí se cargan tus controladores (Clientes, Solicitudes, Encuestas, etc.)
+app.MapControllers(); 
 
 // ----------------------------------------------------
 // AUTH ENDPOINTS
@@ -66,7 +61,8 @@ app.MapPost("/api/auth/signup", async (SignupRequest request, ApplicationDbConte
         Nombre = request.Nombre,
         Telefono = request.Telefono,
         Correo = request.Correo,
-        Contrasena = request.Contrasena,
+        // ENCRIPTAMOS LA CONTRASEÑA
+        Contrasena = BCrypt.Net.BCrypt.HashPassword(request.Contrasena),
         Direccion = request.Direccion,
         NivelPrivilegio = 2 // 2 = cliente (registro público)
     };
@@ -96,7 +92,9 @@ app.MapPost("/api/auth/login", async (SignupRequest request, ApplicationDbContex
     }
 
     var user = await db.Users.FirstOrDefaultAsync(u => u.Correo == request.Correo);
-    if (user == null || user.Contrasena != request.Contrasena)
+    
+    // VALIDACIÓN CON BCRYPT
+    if (user == null || !BCrypt.Net.BCrypt.Verify(request.Contrasena, user.Contrasena))
     {
         return Results.Unauthorized();
     }
@@ -118,7 +116,6 @@ app.MapPost("/api/auth/login", async (SignupRequest request, ApplicationDbContex
 
 // ----------------------------------------------------
 // SERVICE ORDERS ENDPOINTS
-// (Los endpoints de Clientes ya se manejan en ClientesController.cs)
 // ----------------------------------------------------
 
 app.MapGet("/api/service-order", async (ApplicationDbContext db) =>
