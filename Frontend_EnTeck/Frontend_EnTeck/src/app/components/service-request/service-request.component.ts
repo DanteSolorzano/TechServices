@@ -6,12 +6,13 @@ import { AuthService } from '../../services/auth.service';
 import { ClientsService } from '../../services/clients.service';
 import { ServiceOrderService } from '../../services/service-order.service';
 import { ServiceOrder } from '../../models/service-order.model';
+import { EncuestaComponent } from '../encuesta/encuesta.component'; // <-- IMPORTAMOS LA ENCUESTA
 import { environment } from '../../../environments/environment'; 
 
 @Component({
   selector: 'app-service-request',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, EncuestaComponent], // <-- AGREGAMOS A LOS IMPORTS
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './service-request.component.html',
   styleUrl: './service-request.component.css'
@@ -23,6 +24,9 @@ export class ServiceRequestComponent implements OnInit {
   clientName = signal('');
   
   misSolicitudes = signal<ServiceOrder[]>([]);
+
+  // NUEVA SEÑAL PARA CONTROLAR LA ENCUESTA ABIERTA
+  encuestaAbiertaId = signal<number | null>(null);
 
   data = { brand: '', model: '', issue: '' };
 
@@ -66,15 +70,28 @@ export class ServiceRequestComponent implements OnInit {
     });
   }
 
-  // CORREGIDO: Quita acentos y espacios para que las clases CSS coincidan siempre
   getStatusClass(status: string): string {
     if (!status) return 'pendiente';
     return status
       .toLowerCase()
       .trim()
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '') // Elimina acentos
-      .replace(/\s+/g, '-');           // Reemplaza espacios por guiones
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, '-');
+  }
+
+  // NUEVAS FUNCIONES PARA LA ENCUESTA
+  abrirEncuesta(idSolicitud: number) {
+    this.encuestaAbiertaId.set(idSolicitud);
+  }
+
+  cerrarEncuesta() {
+    this.encuestaAbiertaId.set(null);
+  }
+
+  onEncuestaEnviada() {
+    this.cerrarEncuesta();
+    this.cargarMisSolicitudes(); // Recarga la tabla para que traiga 'calificada: true'
   }
 
   isValid(): boolean {
@@ -101,7 +118,7 @@ export class ServiceRequestComponent implements OnInit {
       marca: this.data.brand,
       modelo: this.data.model,
       problema: this.data.issue,
-      estado: 'Pendiente', // Estado inicial oficial
+      estado: 'Pendiente',
       eta: eta.toISOString()
     };
 

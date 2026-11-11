@@ -76,6 +76,7 @@
               <th>Folio</th>
               <th>Dispositivo</th>
               <th>Estado</th>
+              <th>Acciones</th> <!-- NUEVA COLUMNA -->
             </tr>
           </thead>
           <tbody>
@@ -88,18 +89,44 @@
                     {{ req.estado || 'Pendiente' }}
                   </span>
                 </td>
+                <td>
+                  <!-- NUEVA LÓGICA: Si está Listo y NO está calificada, muestra botón. Si ya está calificada, muestra texto -->
+                  @if (req.estado === 'Listo') {
+                    @if (!req.calificada) {
+                      <button class="btn-rate" (click)="abrirEncuesta(req.id)">
+                        ⭐ Calificar
+                      </button>
+                    } @else {
+                      <span style="font-size: 12px; color: #10b981; font-weight: bold;">
+                        ✅ Calificada
+                      </span>
+                    }
+                  } @else {
+                    <span style="font-size: 12px; color: #999;">En proceso...</span>
+                  }
+                </td>
               </tr>
             } @empty {
               <tr>
-                <td colspan="3" style="text-align: center; color: #888; padding: 2rem;">
+                <td colspan="4" style="text-align: center; color: #888; padding: 2rem;">
                   Aún no tienes solicitudes registradas.
                 </td>
               </tr>
             }
           </tbody>
-        </table>
-      </div>
-    </div>
 
-  </div> <!-- FIN DEL DASHBOARD-GRID -->
-</div>
+          <!-- ... Modal ... -->
+          @if (encuestaAbiertaId()) {
+            <div class="modal-overlay" (click)="cerrarEncuesta()">
+              <div class="modal-content" (click)="$event.stopPropagation()">
+                <button class="close-modal" (click)="cerrarEncuesta()">✕</button>
+                
+                <!-- AGREGAMOS EL EVENTO (encuestaEnviada) AQUÍ -->
+                <app-encuesta 
+                  [idSolicitud]="encuestaAbiertaId()!" 
+                  (encuestaEnviada)="onEncuestaEnviada()">
+                </app-encuesta>
+                
+              </div>
+            </div>
+          }

@@ -34,6 +34,25 @@ public class SolicitudesController : ControllerBase
         var solicitudes = await _context.SolicitudesServicio
             .Where(s => s.IdCliente == clienteId)
             .OrderByDescending(s => s.Id)
+            .Select(s => new
+            {
+                id = s.Id,
+                marca = s.Marca,
+                modelo = s.Modelo,
+                problema = s.Problema,
+                estado = s.Estado,
+                fechaRecibido = s.FechaRecibido,
+                eta = s.Eta,
+                idCliente = s.IdCliente,
+                idTecnico = s.IdTecnico,
+                nombreTecnico = s.NombreTecnico,
+                fechaAsignacion = s.FechaAsignacion,
+                diagnostico = s.Diagnostico,
+                piezasUtilizadas = s.PiezasUtilizadas,
+                fechaFinalizacion = s.FechaFinalizacion,
+                // NUEVO: Verifica si ya existe una encuesta para esta orden
+                calificada = _context.EncuestasSatisfaccion.Any(e => e.IdSolicitud == s.Id)
+            })
             .ToListAsync();
 
         return Ok(solicitudes);

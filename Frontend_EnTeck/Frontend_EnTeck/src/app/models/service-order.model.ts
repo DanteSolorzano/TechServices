@@ -15,6 +15,8 @@ export interface ServiceOrder {
   fechaFinalizacion?: string; // <-- NUEVA PROPIEDAD
   diagnostico?: string;
   piezasUtilizadas?: string;
+  calificada?: boolean; // <-- NUEVA PROPIEDAD
+
 }
 
 export interface RendimientoTecnico {

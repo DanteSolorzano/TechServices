@@ -22,9 +22,13 @@
 
     <button 
       class="btn-submit" 
-      [disabled]="calificacionSeleccionada === 0"
+      [disabled]="calificacionSeleccionada === 0 || enviando()"
       (click)="enviarEvaluacion()">
-      Enviar Opinión
+      @if (enviando()) {
+        Enviando...
+      } @else {
+        Enviar Opinión
+      }
     </button>
   } @else {
     <div class="gracias-msg">

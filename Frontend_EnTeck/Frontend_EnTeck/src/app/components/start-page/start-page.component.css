@@ -222,3 +222,109 @@
   .contact-actions { flex-direction: column; }
 }
 
+/* =========================================
+   SECCIÓN DE TESTIMONIOS
+   ========================================= */
+.testimonials-section {
+  padding: 3rem 1.5rem;
+  background-color: #f9f9f9;
+  max-width: 1200px;
+  margin: 0 auto 2rem;
+  border-radius: 20px;
+}
+
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.testimonial-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  border: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease;
+}
+
+.testimonial-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+/* Encabezado del testimonio */
+.card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1rem;
+}
+
+.avatar-icon {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: #e0e7ff; /* Fondo azul muy claro */
+  color: #667eea;      /* Color del ícono (morado/azul de la marca) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.avatar-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-details strong {
+  color: #333;
+  font-size: 1rem;
+}
+
+.user-details span {
+  color: #888;
+  font-size: 0.85rem;
+}
+
+/* Cuerpo del testimonio */
+.card-middle {
+  flex-grow: 1; /* Empuja el pie hacia abajo */
+}
+
+.stars {
+  color: #fbbf24;
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  letter-spacing: 2px;
+}
+
+.comentario {
+  font-style: italic;
+  color: #444;
+  line-height: 1.5;
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Pie del testimonio (Problema) */
+.card-bottom {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px dashed #ddd;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.card-bottom strong {
+  color: #f59e0b; /* Color ámbar para resaltar la falla */
+}

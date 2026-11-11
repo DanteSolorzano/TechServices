@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment'; 
 
 export interface EncuestaDTO {
   idSolicitud: number;
@@ -13,7 +14,7 @@ export interface EncuestaDTO {
 })
 export class EncuestaService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:5190/api/encuestas';
+  private apiUrl = `${environment.apiUrl}/api/encuestas`; 
 
   registrarEncuesta(encuesta: EncuestaDTO): Observable<any> {
     return this.http.post(this.apiUrl, encuesta);

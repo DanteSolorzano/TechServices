@@ -292,3 +292,84 @@ table tr:hover {
     gap: 20px;
   }
 }
+
+/* =========================================
+   ESTILOS DEL BOTÓN DE CALIFICAR
+   ========================================= */
+.btn-rate {
+  background: #f59e0b; /* Color ámbar / estrella */
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+}
+
+.btn-rate:hover {
+  background: #d97706;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(245, 158, 11, 0.4);
+}
+
+/* =========================================
+   ESTILOS DEL MODAL (OVERLAY)
+   ========================================= */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+  position: relative;
+  width: 90%;
+  max-width: 500px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  padding: 2rem;
+  animation: slideUp 0.3s ease;
+}
+
+.close-modal {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: #eee;
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-weight: bold;
+  color: #555;
+  transition: background 0.2s;
+}
+
+.close-modal:hover {
+  background: #ddd;
+  color: #d32f2f;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}

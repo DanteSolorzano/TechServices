@@ -25,6 +25,14 @@ public class EncuestasController : ControllerBase
             return BadRequest(new { mensaje = "La calificación debe ser entre 1 y 5 estrellas." });
         }
 
+        var existeEncuesta = await _context.EncuestasSatisfaccion
+            .AnyAsync(e => e.IdSolicitud == dto.IdSolicitud);
+
+        if (existeEncuesta)
+        {
+            return Conflict(new { mensaje = "Esta orden de servicio ya ha sido calificada." });
+        }
+
         var encuesta = new EncuestaSatisfaccion
         {
             IdSolicitud = dto.IdSolicitud,
@@ -43,7 +51,24 @@ public class EncuestasController : ControllerBase
     [HttpGet("promedio")]
     public async Task<IActionResult> GetPromedioYResumen()
     {
-        var encuestas = await _context.EncuestasSatisfaccion.ToListAsync();
+        // Hacemos un Join para obtener los datos del cliente y del dispositivo
+        var query = from e in _context.EncuestasSatisfaccion
+                    join s in _context.SolicitudesServicio on e.IdSolicitud equals s.Id
+                    join u in _context.Users on s.IdCliente equals u.Id
+                    orderby e.FechaRespuesta descending
+                    select new
+                    {
+                        id = e.Id,
+                        calificacion = e.Calificacion,
+                        comentarios = e.Comentarios,
+                        fechaRespuesta = e.FechaRespuesta,
+                        nombreCliente = u.Nombre,
+                        dispositivo = $"{s.Marca} {s.Modelo}",
+                        problema = s.Problema // <-- NUEVA LÍNEA
+
+                    };
+
+        var encuestas = await query.Take(6).ToListAsync(); // Traemos las últimas 6
 
         if (!encuestas.Any())
         {
@@ -55,13 +80,15 @@ public class EncuestasController : ControllerBase
             });
         }
 
-        var promedio = encuestas.Average(e => e.Calificacion);
+        // Calculamos el promedio general en base a todas las encuestas
+        var todasLasEncuestas = await _context.EncuestasSatisfaccion.ToListAsync();
+        var promedio = todasLasEncuestas.Average(e => e.Calificacion);
 
         return Ok(new
         {
             promedio = Math.Round(promedio, 2),
-            totalRespuestas = encuestas.Count,
-            encuestas = encuestas.OrderByDescending(e => e.FechaRespuesta).Take(10)
+            totalRespuestas = todasLasEncuestas.Count,
+            encuestas = encuestas
         });
     }
 }
