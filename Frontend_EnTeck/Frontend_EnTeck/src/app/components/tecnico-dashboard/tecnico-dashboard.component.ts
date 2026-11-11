@@ -17,10 +17,8 @@ export class TecnicoDashboardComponent implements OnInit {
   private authService = inject(AuthService);
 
   currentUserName = signal<string>('Técnico');
-
   misOrdenes = signal<ServiceOrder[]>([]);
   cargando = signal<boolean>(true);
-  notificandoMap = signal<{ [key: number]: boolean }>({});
 
   ngOnInit() {
     const user = this.authService.getCurrentUser();
@@ -35,14 +33,11 @@ export class TecnicoDashboardComponent implements OnInit {
     const user = this.authService.getCurrentUser();
     
     if (!user || !user.id) {
-      console.error('No hay usuario logueado o no tiene ID');
       this.cargando.set(false);
       return;
     }
 
-    const tecnicoId = user.id;
-
-    this.serviceOrderService.getOrdenesPorTecnico(tecnicoId).subscribe({
+    this.serviceOrderService.getOrdenesPorTecnico(user.id).subscribe({
       next: (ordenes) => {
         this.misOrdenes.set(ordenes || []);
         this.cargando.set(false);
@@ -57,22 +52,17 @@ export class TecnicoDashboardComponent implements OnInit {
   cambiarEstado(ordenId: number, event: Event) {
     const select = event.target as HTMLSelectElement;
     const nuevoEstado = select.value;
-
     const orden = this.misOrdenes().find(o => o.id === ordenId);
     if (!orden) return;
 
-    const diagnostico = (orden as any).diagnostico || '';
-    const piezas = orden.piezasUtilizadas || '';
-
     this.serviceOrderService.registrarDiagnostico(
       ordenId,
-      diagnostico,
-      piezas,
+      (orden as any).diagnostico || '',
+      orden.piezasUtilizadas || '',
       nuevoEstado
     ).subscribe({
       next: () => {
         orden.estado = nuevoEstado;
-        // Si cambia a Listo, lo sacamos de la vista del técnico
         if (nuevoEstado === 'Listo') {
           this.cargarMisOrdenes();
         }
@@ -88,15 +78,11 @@ export class TecnicoDashboardComponent implements OnInit {
   guardarDiagnostico(orden: ServiceOrder) {
     if (!orden) return;
 
-    const diagnostico = (orden as any).diagnostico || '';
-    const piezas = orden.piezasUtilizadas || '';
-    const estado = orden.estado || 'En Diagnostico';
-
     this.serviceOrderService.registrarDiagnostico(
       orden.id,
-      diagnostico,
-      piezas,
-      estado
+      (orden as any).diagnostico || '',
+      orden.piezasUtilizadas || '',
+      orden.estado || 'En Diagnostico'
     ).subscribe({
       next: () => {
         alert(`¡Diagnóstico de la Orden #${orden.id} guardado correctamente!`);
@@ -107,26 +93,5 @@ export class TecnicoDashboardComponent implements OnInit {
         alert('Ocurrió un error al intentar guardar el diagnóstico.');
       }
     });
-  }
-
-  notificarPorWhatsApp(orden: ServiceOrder) {
-    if (!orden) return;
-
-    const ord = orden as any;
-    this.notificandoMap.update(map => ({ ...map, [orden.id]: true }));
-
-    const telefono = ord.telefonoCliente || ord.telefono || '4731234567';
-    const nombreCliente = ord.nombreCliente || ord.cliente || 'Cliente';
-
-    const mensaje = encodeURIComponent(
-      `Hola ${nombreCliente}, te saludamos de EnTeck. Tu dispositivo ${orden.marca || ''} ${orden.modelo || ''} (Orden #${orden.id}) se encuentra en estado: *${orden.estado || 'En Diagnostico'}*.`
-    );
-
-    const urlWhatsApp = `https://api.whatsapp.com/send?phone=${telefono}&text=${mensaje}`;
-
-    setTimeout(() => {
-      window.open(urlWhatsApp, '_blank');
-      this.notificandoMap.update(map => ({ ...map, [orden.id]: false }));
-    }, 500);
   }
 }

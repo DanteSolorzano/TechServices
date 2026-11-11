@@ -101,6 +101,9 @@
                   <button class="btn btn-finish" (click)="finalizarOrden(orden.id)" title="Marcar como Listo">
                     ✅ Finalizar
                   </button>
+                  <button class="btn btn-whatsapp" (click)="enviarWhatsApp(orden, 'cambio_estado')" title="Avisar por WhatsApp">
+                    📱 Enviar Wsp
+                  </button>
                 </td>
                 <td><strong>#{{ orden.id }}</strong></td>
                 <td>{{ orden.marca }} {{ orden.modelo }}</td>
@@ -334,7 +337,7 @@
           </tbody>
         </table>
 
-        <!-- NUEVA TABLA: ÓRDENES FINALIZADAS -->
+        <!--  TABLA 3: ÓRDENES FINALIZADAS -->
         <div class="table-section" style="margin-top: 40px;">
           <h3>✅ Historial de Órdenes Finalizadas</h3>
           <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Órdenes que ya han sido entregadas o completadas.</p>
@@ -342,6 +345,7 @@
           <table>
             <thead>
               <tr>
+                <th>Acciones</th>
                 <th>ID / Folio</th>
                 <th>Técnico</th>
                 <th>Dispositivo</th>
@@ -353,6 +357,11 @@
             <tbody>
               @for (orden of ordenesFinalizadas(); track orden.id) {
                 <tr>
+                   <td>
+                  <button class="btn btn-whatsapp" (click)="enviarWhatsApp(orden, 'encuesta')" title="Enviar Encuesta">
+                    📱 Encuesta
+                  </button>
+                </td>
                   <td><strong>#{{ orden.id }}</strong></td>
                   <td>👤 {{ orden.nombreTecnico || 'Sin Asignar' }}</td>
                   <td>{{ orden.marca }} {{ orden.modelo }}</td>

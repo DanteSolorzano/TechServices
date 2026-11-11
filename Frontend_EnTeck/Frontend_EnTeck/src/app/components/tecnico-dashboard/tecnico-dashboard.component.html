@@ -62,18 +62,6 @@
           <button class="btn-action btn-save" (click)="guardarDiagnostico(orden)">
             💾 Guardar Diagnóstico y Piezas
           </button>
-
-          <!-- Botón de Notificación por WhatsApp (US-015) -->
-          <button 
-            class="btn-action btn-whatsapp" 
-            (click)="notificarPorWhatsApp(orden)" 
-            [disabled]="notificandoMap()[orden.id]">
-            @if (notificandoMap()[orden.id]) {
-              ⏳ Enviando notificación...
-            } @else {
-              📱 Notificar por WhatsApp
-            }
-          </button>
         </div>
 
       </div>

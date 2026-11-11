@@ -18,7 +18,7 @@ namespace Backend_EnTeck.Controllers
         [HttpPost("enviar")]
         public async Task<IActionResult> EnviarNotificacion([FromBody] NotificacionOrdenDto dto)
         {
-            if (string.IsNullOrWhiteSpace(dto.Telefono) || string.IsNullOrWhiteSpace(dto.Mensaje))
+            if (string.IsNullOrWhiteSpace(dto.Telefono) || string.IsNullOrWhiteSpace(dto.MensajePersonalizado))
             {
                 return BadRequest(new { mensaje = "El número de teléfono y el mensaje son obligatorios." });
             }
@@ -33,7 +33,7 @@ namespace Backend_EnTeck.Controllers
             return StatusCode(500, new { mensaje = "No se pudo enviar la notificación a n8n." });
         }
         // ====================================================================
-        // GET: api/WhatsApp/reporte-semanal
+        // GET: api/WhatsApp/reporte-semanal ignora esto por ahora, se va a optar por el de las metricas
         // Lógica US-017: Emisión/Consulta de métricas para la automatización con n8n
         // ====================================================================
         [HttpGet("reporte-semanal")]

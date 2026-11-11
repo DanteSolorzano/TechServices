@@ -8,6 +8,8 @@ import { ServiceOrder, ReporteRendimiento } from '../../models/service-order.mod
 import { ServiceOrderService } from '../../services/service-order.service';
 import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../environments/environment';
+import { WhatsappService } from '../../services/whatsapp.service'; // <-- NUEVO
+
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -20,12 +22,52 @@ export class AdminDashboardComponent implements OnInit {
   private serviceOrderService = inject(ServiceOrderService);
   private httpClient = inject(HttpClient);
   private authService = inject(AuthService);
+    private whatsappService = inject(WhatsappService); 
+
 
   currentUserName = signal<string>('Administrador');
 
   activeTab = signal<'inventario' | 'reparto' | 'usuarios' | 'reportes'>('reparto');
   
   todasLasOrdenes = signal<ServiceOrder[]>([]); 
+
+  enviarWhatsApp(orden: ServiceOrder, tipo: 'cambio_estado' | 'encuesta') {
+    if (!orden) return;
+
+    // 1. Buscamos al cliente en la lista de usuarios que ya cargamos
+    const cliente = this.usuarios().find(u => u.id === orden.idCliente);
+    
+    // 2. Extraemos los datos reales. Si por alguna razón no se encuentra, usamos un valor por defecto
+    const telefono = cliente?.telefono || '4737563898'; 
+    const nombreCliente = cliente?.nombre || 'Cliente';
+    
+    // 3. El dispositivo viene directo de la tabla SolicitudServicio (orden)
+    const dispositivo = `${orden.marca} ${orden.modelo}`;
+
+    let mensaje = '';
+    if (tipo === 'cambio_estado') {
+      mensaje = `Hola ${nombreCliente}, tu dispositivo ${dispositivo} (Orden #${orden.id}) ha cambiado de estado a: *${orden.estado}*.`;
+    } else {
+      mensaje = `Hola ${nombreCliente}, tu dispositivo ${dispositivo} (Orden #${orden.id}) está *Listo*. Por favor, califica nuestro servicio aquí: http://localhost:4200/solicitud`;
+    }
+
+    const payload = {
+      cliente: nombreCliente,
+      telefono: telefono, // Mandamos el teléfono real de la BD (ej. 4737563898)
+      ordenId: String(orden.id),
+      estado: orden.estado,
+      dispositivo: dispositivo,
+      mensajePersonalizado: mensaje
+    };
+
+    this.whatsappService.enviarNotificacion(payload).subscribe({
+      next: () => alert(`✅ Mensaje enviado a ${nombreCliente} correctamente.`),
+      error: (err) => {
+        console.error('Error al enviar WhatsApp:', err);
+        alert('❌ Hubo un error al conectar con n8n.');
+      }
+    });
+  }
   
   // Filtramos las que no tienen técnico
   ordenesSinAsignar = computed(() => 
