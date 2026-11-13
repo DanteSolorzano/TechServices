@@ -1,24 +1,13 @@
-# C# / .NET 
-bin/ 
-obj/ 
-*.user 
-*.userosscache 
-*.sln.docstates 
-Backend-EnTeck/Backend-EnTeck/bin/ 
-Backend-EnTeck/Backend-EnTeck/obj/ 
- 
-# Node / Angular 
-node_modules/ 
-.angular/ 
-dist/ 
-Frontend_EnTeck/Frontend_EnTeck/node_modules/ 
-Frontend_EnTeck/Frontend_EnTeck/.angular/ 
-Frontend_EnTeck/Frontend_EnTeck/dist/ 
- 
-# Archivos pesados / Sistema 
-*.zip 
-*.rar 
-*.exe 
-.DS_Store 
-Thumbs.db 
-.vscode/
+# Backend
+backend/**/bin/
+backend/**/obj/
+*.user
+
+# Frontend
+frontend/node_modules/
+frontend/.angular/
+frontend/dist/
+frontend/vercel.json # Opcional, si no quieres subir la config de Vercel
+
+# macOS
+.DS_Store
