@@ -1,13 +1,17 @@
-# Backend
+# Entorno y Secretos
+**/appsettings.json
+**/appsettings.Development.json
+**/*.http
+
+# Backend (.NET)
 backend/**/bin/
 backend/**/obj/
 *.user
 
-# Frontend
+# Frontend (Angular)
 frontend/node_modules/
 frontend/.angular/
 frontend/dist/
-frontend/vercel.json # Opcional, si no quieres subir la config de Vercel
 
-# macOS
-.DS_Store
+# Sistema (Mac)
+**/.DS_Store
