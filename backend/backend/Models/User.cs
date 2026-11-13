@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace TechServices.Models;
 
-[Table("Clientes")]
+[Table("Usuarios")]
 public class User
 {
     [Column("id")]

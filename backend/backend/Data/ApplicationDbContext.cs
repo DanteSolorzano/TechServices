@@ -20,7 +20,7 @@ public class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.ToTable("Clientes");
+            entity.ToTable("Usuarios");
             entity.HasKey(e => e.Id);
         });
 
