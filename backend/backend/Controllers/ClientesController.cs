@@ -1,38 +1,139 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Backend_EnTeck.Data;
-using Backend_EnTeck.Models;
+using TechServices.Data;
+using TechServices.Models;
+using TechServices.DTOs; // <-- Nuevo namespace para los DTOs
 
-namespace Backend_EnTeck.Controllers
+namespace TechServices.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class ClientesController : ControllerBase
 {
-    public class LoginRequest
+    private readonly ApplicationDbContext _context;
+
+    public ClientesController(ApplicationDbContext context)
     {
-        public string Correo { get; set; } = string.Empty;
-        public string Contrasena { get; set; } = string.Empty;
+        _context = context;
     }
 
-    [ApiController]
-    [Route("api/[controller]")]
-    public class ClientesController : ControllerBase
+    // GET: api/clientes
+    [HttpGet]
+    public async Task<IActionResult> GetClientes()
     {
-        private readonly ApplicationDbContext _context;
+        var usuarios = await _context.Users.ToListAsync();
+        return Ok(usuarios);
+    }
 
-        public ClientesController(ApplicationDbContext context)
+    // GET: api/clientes/{id}
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetClientePorId(int id)
+    {
+        var usuario = await _context.Users.FindAsync(id);
+        if (usuario == null)
         {
-            _context = context;
+            return NotFound(new { mensaje = "Usuario no encontrado." });
         }
 
-        // GET: api/clientes
-        [HttpGet]
-        public async Task<IActionResult> GetClientes()
+        return Ok(new
         {
-            var usuarios = await _context.Users.ToListAsync();
-            return Ok(usuarios);
+            id = usuario.Id,
+            nombre = usuario.Nombre,
+            telefono = usuario.Telefono,
+            correo = usuario.Correo,
+            direccion = usuario.Direccion,
+            nivelPrivilegio = usuario.NivelPrivilegio,
+            esAdmin = usuario.EsAdmin,
+            rol = usuario.Rol
+        });
+    }
+
+    // POST: api/clientes/login
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginRequest request)
+    {
+        if (request == null || string.IsNullOrWhiteSpace(request.Correo) || string.IsNullOrWhiteSpace(request.Contrasena))
+        {
+            return BadRequest(new { mensaje = "El correo y la contraseña son requeridos." });
         }
 
-        // GET: api/clientes/{id}
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetClientePorId(int id)
+        try
+        {
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Correo.ToLower() == request.Correo.ToLower().Trim());
+
+            // VALIDACIÓN CON BCRYPT (Verifica si la contraseña en texto plano coincide con el hash)
+            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Contrasena, user.Contrasena))
+            {
+                return Unauthorized(new { mensaje = "Correo o contraseña incorrectos." });
+            }
+
+            string rolFinal = string.IsNullOrWhiteSpace(user.Rol) 
+                ? (user.EsAdmin ? "admin" : "cliente") 
+                : user.Rol;
+
+            return Ok(new
+            {
+                id = user.Id,
+                nombre = user.Nombre,
+                correo = user.Correo,
+                esAdmin = user.EsAdmin,
+                rol = rolFinal,
+                nivelPrivilegio = user.NivelPrivilegio
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { mensaje = "Error en inicio de sesión", detalle = ex.Message });
+        }
+    }
+
+    // POST: api/clientes
+    [HttpPost]
+    public async Task<IActionResult> RegistrarCliente([FromBody] User usuario)
+    {
+        if (usuario == null || string.IsNullOrWhiteSpace(usuario.Nombre) || string.IsNullOrWhiteSpace(usuario.Correo))
+        {
+            return BadRequest(new { mensaje = "El nombre y el correo son obligatorios." });
+        }
+
+        try
+        {
+            // Validar nivelPrivilegio: 0 = admin, 1 = tecnico, 2 = cliente
+            if (usuario.NivelPrivilegio < 0 || usuario.NivelPrivilegio > 2)
+            {
+                usuario.NivelPrivilegio = 2; // Por defecto: cliente
+            }
+
+            if (string.IsNullOrWhiteSpace(usuario.Contrasena))
+            {
+                usuario.Contrasena = "123456"; // Contraseña por defecto
+            }
+
+            // ENCRIPTAMOS LA CONTRASEÑA
+            usuario.Contrasena = BCrypt.Net.BCrypt.HashPassword(usuario.Contrasena);
+
+            _context.Users.Add(usuario);
+            await _context.SaveChangesAsync();
+
+            return Ok(usuario);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { mensaje = "Error al guardar el usuario", detalle = ex.Message });
+        }
+    }
+
+    // PUT: api/clientes/{id}
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateCliente(int id, [FromBody] User usuarioActualizado)
+    {
+        if (usuarioActualizado == null)
+        {
+            return BadRequest(new { mensaje = "Datos del usuario inválidos." });
+        }
+
+        try
         {
             var usuario = await _context.Users.FindAsync(id);
             if (usuario == null)
@@ -40,151 +141,42 @@ namespace Backend_EnTeck.Controllers
                 return NotFound(new { mensaje = "Usuario no encontrado." });
             }
 
-            return Ok(new
-            {
-                id = usuario.Id,
-                nombre = usuario.Nombre,
-                telefono = usuario.Telefono,
-                correo = usuario.Correo,
-                direccion = usuario.Direccion,
-                nivelPrivilegio = usuario.NivelPrivilegio,
-                esAdmin = usuario.EsAdmin,
-                rol = usuario.Rol
-            });
+            usuario.Nombre = usuarioActualizado.Nombre;
+            usuario.Correo = usuarioActualizado.Correo;
+            usuario.Telefono = usuarioActualizado.Telefono;
+            usuario.Direccion = usuarioActualizado.Direccion;
+            usuario.NivelPrivilegio = usuarioActualizado.NivelPrivilegio;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(usuario);
         }
-
-        // POST: api/clientes/login
-        [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        catch (Exception ex)
         {
-            if (request == null || string.IsNullOrWhiteSpace(request.Correo) || string.IsNullOrWhiteSpace(request.Contrasena))
-            {
-                return BadRequest(new { mensaje = "El correo y la contraseña son requeridos." });
-            }
-
-            try
-            {
-                var user = await _context.Users
-                    .FirstOrDefaultAsync(u => u.Correo.ToLower() == request.Correo.ToLower().Trim());
-
-                // VALIDACIÓN CON BCRYPT (Verifica si la contraseña en texto plano coincide con el hash)
-                if (user == null || !BCrypt.Net.BCrypt.Verify(request.Contrasena, user.Contrasena))
-                {
-                    return Unauthorized(new { mensaje = "Correo o contraseña incorrectos." });
-                }
-
-                string rolFinal = string.IsNullOrWhiteSpace(user.Rol) 
-                    ? (user.EsAdmin ? "admin" : "cliente") 
-                    : user.Rol;
-
-                return Ok(new
-                {
-                    id = user.Id,
-                    nombre = user.Nombre,
-                    correo = user.Correo,
-                    esAdmin = user.EsAdmin,
-                    rol = rolFinal,
-                    nivelPrivilegio = user.NivelPrivilegio
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { mensaje = "Error en inicio de sesión", detalle = ex.Message });
-            }
+            return StatusCode(500, new { mensaje = "Error al actualizar el usuario", detalle = ex.Message });
         }
+    }
 
-        // POST: api/clientes
-        [HttpPost]
-        public async Task<IActionResult> RegistrarCliente([FromBody] User usuario)
+    // DELETE: api/clientes/{id}
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteCliente(int id)
+    {
+        try
         {
-            if (usuario == null || string.IsNullOrWhiteSpace(usuario.Nombre) || string.IsNullOrWhiteSpace(usuario.Correo))
+            var usuario = await _context.Users.FindAsync(id);
+            if (usuario == null)
             {
-                return BadRequest(new { mensaje = "El nombre y el correo son obligatorios." });
+                return NotFound(new { mensaje = "Usuario no encontrado." });
             }
 
-            try
-            {
-                // Validar nivelPrivilegio: 0 = admin, 1 = tecnico, 2 = cliente
-                if (usuario.NivelPrivilegio < 0 || usuario.NivelPrivilegio > 2)
-                {
-                    usuario.NivelPrivilegio = 2; // Por defecto: cliente
-                }
+            _context.Users.Remove(usuario);
+            await _context.SaveChangesAsync();
 
-                if (string.IsNullOrWhiteSpace(usuario.Contrasena))
-                {
-                    usuario.Contrasena = "123456"; // Contraseña por defecto
-                }
-
-                // ENCRIPTAMOS LA CONTRASEÑA (ya sea la que envió el admin o la de por defecto)
-                usuario.Contrasena = BCrypt.Net.BCrypt.HashPassword(usuario.Contrasena);
-
-                _context.Users.Add(usuario);
-                await _context.SaveChangesAsync();
-
-                return Ok(usuario);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { mensaje = "Error al guardar el usuario", detalle = ex.Message });
-            }
+            return Ok(new { mensaje = "Usuario eliminado correctamente." });
         }
-
-        // PUT: api/clientes/{id}
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCliente(int id, [FromBody] User usuarioActualizado)
+        catch (Exception ex)
         {
-            if (usuarioActualizado == null)
-            {
-                return BadRequest(new { mensaje = "Datos del usuario inválidos." });
-            }
-
-            try
-            {
-                var usuario = await _context.Users.FindAsync(id);
-                if (usuario == null)
-                {
-                    return NotFound(new { mensaje = "Usuario no encontrado." });
-                }
-
-                usuario.Nombre = usuarioActualizado.Nombre;
-                usuario.Correo = usuarioActualizado.Correo;
-                usuario.Telefono = usuarioActualizado.Telefono;
-                usuario.Direccion = usuarioActualizado.Direccion;
-                usuario.NivelPrivilegio = usuarioActualizado.NivelPrivilegio;
-
-                // NOTA: Aquí no actualizamos la contraseña para no romper el hash existente a menos que se envíe una nueva explícitamente.
-
-                await _context.SaveChangesAsync();
-
-                return Ok(usuario);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { mensaje = "Error al actualizar el usuario", detalle = ex.Message });
-            }
-        }
-
-        // DELETE: api/clientes/{id}
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCliente(int id)
-        {
-            try
-            {
-                var usuario = await _context.Users.FindAsync(id);
-                if (usuario == null)
-                {
-                    return NotFound(new { mensaje = "Usuario no encontrado." });
-                }
-
-                _context.Users.Remove(usuario);
-                await _context.SaveChangesAsync();
-
-                return Ok(new { mensaje = "Usuario eliminado correctamente." });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { mensaje = "Error al eliminar el usuario", detalle = ex.Message });
-            }
+            return StatusCode(500, new { mensaje = "Error al eliminar el usuario", detalle = ex.Message });
         }
     }
 }

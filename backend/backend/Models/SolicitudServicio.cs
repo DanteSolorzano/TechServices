@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Backend_EnTeck.Models;
+namespace TechServices.Models;
 
 [Table("SolicitudServicio")]
 public class SolicitudServicio
@@ -19,7 +19,7 @@ public class SolicitudServicio
     public string Problema { get; set; } = string.Empty;
 
     [Column("estado")]
-    public string Estado { get; set; } = "Recibido"; // Recibido, En Diagnóstico, En Reparación, Listo
+    public string Estado { get; set; } = "Pendiente"; // Pendiente, En Diagnostico, En Reparacion, Listo
 
     [Column("fecha_recibido")]
     public DateTime FechaRecibido { get; set; }
@@ -30,7 +30,6 @@ public class SolicitudServicio
     [Column("id_cliente")]
     public int IdCliente { get; set; }
 
-    // --- Mapeo para US-011 (Reparto de trabajo a técnicos) ---
     [Column("id_tecnico")]
     public int? IdTecnico { get; set; }
 
@@ -40,13 +39,13 @@ public class SolicitudServicio
     [Column("fecha_asignacion")]
     public DateTime? FechaAsignacion { get; set; }
 
-    // --- Mapeo para US-013 (Registro de Diagnóstico y Piezas) ---
     [Column("diagnostico")]
     public string? Diagnostico { get; set; }
 
     [Column("piezas_utilizadas")]
     public string? PiezasUtilizadas { get; set; }
 
+    // NUEVO CAMPO agregado para el historial
     [Column("fecha_finalizacion")]
     public DateTime? FechaFinalizacion { get; set; }
 }

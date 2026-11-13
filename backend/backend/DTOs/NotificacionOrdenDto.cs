@@ -1,4 +1,4 @@
-namespace Backend_EnTeck.Models
+namespace TechServices.DTOs
 {
     public class NotificacionOrdenDto
     {
@@ -7,7 +7,6 @@ namespace Backend_EnTeck.Models
         public string OrdenId { get; set; } = string.Empty;
         public string Estado { get; set; } = string.Empty;
         
-        // Nuevos campos para que n8n tenga más contexto
         public string Dispositivo { get; set; } = string.Empty;
         public string MensajePersonalizado { get; set; } = string.Empty; 
     }

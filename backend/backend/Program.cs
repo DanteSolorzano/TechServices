@@ -1,18 +1,20 @@
-using Backend_EnTeck.Data;
-using Backend_EnTeck.Models;
+using TechServices.Data;
+using TechServices.Models;
+using TechServices.Services;
+using TechServices.DTOs;
 using Microsoft.EntityFrameworkCore;
-using Backend_EnTeck.Services;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 
+// CAMBIO: CORS habilitado para desarrollo local (permite cualquier origen)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("https://enteck.vercel.app") 
+        policy.AllowAnyOrigin() 
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
@@ -32,7 +34,7 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference(); 
 }
 
-// app.UseHttpsRedirection();
+// app.UseHttpsRedirection(); // Se queda comentado para evitar problemas de CORS en local
 app.UseCors("AllowAll");
 app.MapControllers(); 
 

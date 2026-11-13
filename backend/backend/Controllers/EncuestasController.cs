@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Backend_EnTeck.Data;
-using Backend_EnTeck.Models;
+using TechServices.Data;
+using TechServices.Models;
+using TechServices.DTOs; // <-- DTOs
 
-namespace Backend_EnTeck.Controllers;
+namespace TechServices.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -51,7 +52,6 @@ public class EncuestasController : ControllerBase
     [HttpGet("promedio")]
     public async Task<IActionResult> GetPromedioYResumen()
     {
-        // Hacemos un Join para obtener los datos del cliente y del dispositivo
         var query = from e in _context.EncuestasSatisfaccion
                     join s in _context.SolicitudesServicio on e.IdSolicitud equals s.Id
                     join u in _context.Users on s.IdCliente equals u.Id
@@ -64,11 +64,10 @@ public class EncuestasController : ControllerBase
                         fechaRespuesta = e.FechaRespuesta,
                         nombreCliente = u.Nombre,
                         dispositivo = $"{s.Marca} {s.Modelo}",
-                        problema = s.Problema // <-- NUEVA LÍNEA
-
+                        problema = s.Problema
                     };
 
-        var encuestas = await query.Take(6).ToListAsync(); // Traemos las últimas 6
+        var encuestas = await query.Take(6).ToListAsync();
 
         if (!encuestas.Any())
         {
@@ -80,7 +79,6 @@ public class EncuestasController : ControllerBase
             });
         }
 
-        // Calculamos el promedio general en base a todas las encuestas
         var todasLasEncuestas = await _context.EncuestasSatisfaccion.ToListAsync();
         var promedio = todasLasEncuestas.Average(e => e.Calificacion);
 
@@ -91,11 +89,4 @@ public class EncuestasController : ControllerBase
             encuestas = encuestas
         });
     }
-}
-
-public class RegistrarEncuestaDto
-{
-    public int IdSolicitud { get; set; }
-    public int Calificacion { get; set; }
-    public string Comentarios { get; set; } = string.Empty;
 }

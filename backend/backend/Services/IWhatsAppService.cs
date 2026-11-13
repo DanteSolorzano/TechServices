@@ -1,9 +1,8 @@
-using Backend_EnTeck.Models;
+using TechServices.DTOs;
 
-namespace Backend_EnTeck.Services
+namespace TechServices.Services;
+
+public interface IWhatsAppService
 {
-    public interface IWhatsAppService
-    {
-        Task<bool> EnviarNotificacionWebhookAsync(NotificacionOrdenDto dto);
-    }
+    Task<bool> EnviarNotificacionWebhookAsync(NotificacionOrdenDto dto);
 }

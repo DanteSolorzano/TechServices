@@ -1,7 +1,7 @@
-using Backend_EnTeck.Models;
+using TechServices.Models; 
 using Microsoft.EntityFrameworkCore;
 
-namespace Backend_EnTeck.Data;
+namespace TechServices.Data; 
 
 public class ApplicationDbContext : DbContext
 {

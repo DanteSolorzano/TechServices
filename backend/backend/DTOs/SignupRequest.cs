@@ -1,4 +1,4 @@
-namespace Backend_EnTeck.Models;
+namespace TechServices.DTOs;
 
 public class SignupRequest
 {

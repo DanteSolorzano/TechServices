@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Backend_EnTeck.Data;
-using Backend_EnTeck.Models;
+using TechServices.Data;
+using TechServices.Models;
+using TechServices.DTOs; // <-- DTOs
 
-namespace Backend_EnTeck.Controllers;
+namespace TechServices.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -50,7 +51,6 @@ public class SolicitudesController : ControllerBase
                 diagnostico = s.Diagnostico,
                 piezasUtilizadas = s.PiezasUtilizadas,
                 fechaFinalizacion = s.FechaFinalizacion,
-                // NUEVO: Verifica si ya existe una encuesta para esta orden
                 calificada = _context.EncuestasSatisfaccion.Any(e => e.IdSolicitud == s.Id)
             })
             .ToListAsync();
@@ -108,13 +108,10 @@ public class SolicitudesController : ControllerBase
         var solicitudes = await query.ToListAsync();
 
         var totalOrdenes = solicitudes.Count;
-        
-        // LÓGICA ACTUALIZADA SEGÚN TUS REQUERIMIENTOS
         var completadas = solicitudes.Count(s => s.Estado == "Listo");
         var enProceso = solicitudes.Count(s => s.Estado == "En Diagnostico" || s.Estado == "En Reparacion");
         var pendientes = solicitudes.Count(s => !s.IdTecnico.HasValue || s.IdTecnico.Value == 0);
 
-        // Métrica por técnicos (solo los que tienen técnico asignado)
         var rendimientoTecnicos = solicitudes
             .Where(s => s.IdTecnico.HasValue && s.IdTecnico.Value > 0)
             .GroupBy(s => new { IdTecnico = s.IdTecnico!.Value, Nombre = string.IsNullOrWhiteSpace(s.NombreTecnico) ? "Técnico General" : s.NombreTecnico })
@@ -179,7 +176,6 @@ public class SolicitudesController : ControllerBase
         {
             orden.Estado = dto.Estado;
             
-            // NUEVO: Si el estado pasa a Listo, guardamos la fecha de finalización
             if (orden.Estado == "Listo")
             {
                 orden.FechaFinalizacion = DateTime.Now;
@@ -211,37 +207,4 @@ public class SolicitudesController : ControllerBase
         await _context.SaveChangesAsync();
         return Ok(new { mensaje = "Diagnóstico y piezas registradas correctamente.", orden });
     }
-}
-
-public class ActualizarOrdenDto
-{
-    public int? IdTecnico { get; set; }
-    public string? NombreTecnico { get; set; }
-    public string? Estado { get; set; }
-    public string? Eta { get; set; }
-}
-
-public class RegistrarDiagnosticoDto
-{
-    public string Diagnostico { get; set; } = string.Empty;
-    public string PiezasUtilizadas { get; set; } = string.Empty;
-    public string? Estado { get; set; }
-}
-
-public class ReporteRendimientoDto
-{
-    public int TotalOrdenes { get; set; }
-    public int Completadas { get; set; }
-    public int EnProceso { get; set; }
-    public int Pendientes { get; set; }
-    public List<RendimientoTecnicoDto> RendimientoTecnicos { get; set; } = new();
-}
-
-public class RendimientoTecnicoDto
-{
-    public int TecnicoId { get; set; }
-    public string NombreTecnico { get; set; } = string.Empty;
-    public int OrdenesAsignadas { get; set; }
-    public int OrdenesFinalizadas { get; set; }
-    public int OrdenesEnProceso { get; set; }
 }
