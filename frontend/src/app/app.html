@@ -1,11 +1,15 @@
 ﻿<nav class="global-navbar">
   <div class="nav-logo" routerLink="/">
-    <span style="font-size: 24px;"></span>
-    <h2>TechServices<span style="color:#667eea">.</span></h2>
+    <div class="logo-badge">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+      </svg>
+    </div>
+    <h2>TechServices<span>.</span></h2>
   </div>
 
   <div class="nav-links">
-    <a routerLink="/tracking" routerLinkActive="active-link">Rastreo</a>
+    <a routerLink="/tracking" routerLinkActive="active-link" class="nav-item">Rastreo</a>
     
     @if (!authService.currentUser()) {
       <a routerLink="/auth" class="btn-login">Iniciar Sesión</a>
@@ -13,15 +17,15 @@
       
       <!-- Si es Admin -->
       @if (authService.currentUser()?.esAdmin) {
-        <a routerLink="/admin" routerLinkActive="active-link">Panel Admin</a>
+        <a routerLink="/admin" routerLinkActive="active-link" class="nav-item">Panel Admin</a>
       } 
       <!-- Si es Técnico -->
       @else if (esTecnico(authService.currentUser())) {
-        <a routerLink="/tecnico" routerLinkActive="active-link">Panel Técnico</a>
+        <a routerLink="/tecnico" routerLinkActive="active-link" class="nav-item">Panel Técnico</a>
       } 
       <!-- Si es Cliente -->
       @else {
-        <a routerLink="/solicitud" routerLinkActive="active-link">Mis Solicitudes</a>
+        <a routerLink="/solicitud" routerLinkActive="active-link" class="nav-item">Mis Solicitudes</a>
       }
       
       <button (click)="logout()" class="btn-logout">Cerrar Sesión</button>
