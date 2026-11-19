@@ -6,7 +6,7 @@
     <!-- Encabezado Personalizado -->
     <div class="welcome-header">
       <h2>👋 ¡Hola, <span class="highlight">{{ currentUserName() }}</span>!</h2>
-      <p>Bienvenido al panel de control de EnTeck</p>
+      <p>Bienvenido al panel de control de TechServices</p>
     </div>
 
     <!-- Navegación por Pestañas -->
@@ -19,9 +19,6 @@
       </button>
       <button class="tab-btn" [class.active]="activeTab() === 'reportes'" (click)="activeTab.set('reportes')">
         📊 Métricas y Reportes
-      </button>
-      <button class="tab-btn" [class.active]="activeTab() === 'inventario'" (click)="activeTab.set('inventario')">
-        📦 Inventario y Servicios
       </button>
     </div>
 
@@ -110,7 +107,7 @@
                 <td>{{ orden.problema }}</td>
                 <td>
                   <span class="stock-badge low-stock">
-                    {{ orden.estado || 'En Diagnostico' }} <!-- CAMBIADO AQUÍ -->
+                    {{ orden.estado || 'En Diagnostico' }}
                   </span>
                 </td>
                 <td>
@@ -262,7 +259,7 @@
       </div>
     }
 
-        <!-- SECCIÓN 3: MÉTRICAS Y REPORTES DE RENDIMIENTO (US-016) -->
+    <!-- SECCIÓN 3: MÉTRICAS Y REPORTES DE RENDIMIENTO (US-016) -->
     @if (activeTab() === 'reportes') {
       <div style="margin-bottom: 15px;">
         <h3>📊 Métricas y Reportes Operativos</h3>
@@ -337,7 +334,7 @@
           </tbody>
         </table>
 
-        <!--  TABLA 3: ÓRDENES FINALIZADAS -->
+        <!-- TABLA 3: ÓRDENES FINALIZADAS -->
         <div class="table-section" style="margin-top: 40px;">
           <h3>✅ Historial de Órdenes Finalizadas</h3>
           <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Órdenes que ya han sido entregadas o completadas.</p>
@@ -357,11 +354,11 @@
             <tbody>
               @for (orden of ordenesFinalizadas(); track orden.id) {
                 <tr>
-                   <td>
-                  <button class="btn btn-whatsapp" (click)="enviarWhatsApp(orden, 'encuesta')" title="Enviar Encuesta">
-                    📱 Encuesta
-                  </button>
-                </td>
+                  <td>
+                    <button class="btn btn-whatsapp" (click)="enviarWhatsApp(orden, 'encuesta')" title="Enviar Encuesta">
+                      📱 Encuesta
+                    </button>
+                  </td>
                   <td><strong>#{{ orden.id }}</strong></td>
                   <td>👤 {{ orden.nombreTecnico || 'Sin Asignar' }}</td>
                   <td>{{ orden.marca }} {{ orden.modelo }}</td>
@@ -375,7 +372,7 @@
                 </tr>
               } @empty {
                 <tr>
-                  <td colspan="6" style="text-align: center; color: #888; padding: 2rem;">
+                  <td colspan="7" style="text-align: center; color: #888; padding: 2rem;">
                     Aún no hay órdenes finalizadas.
                   </td>
                 </tr>
@@ -388,109 +385,6 @@
         <div style="text-align: center; padding: 3rem; color: #666;">
           Cargando reporte de rendimiento...
         </div>
-      }
-    }
-
-    <!-- SECCIÓN 4: INVENTARIO -->
-    @if (activeTab() === 'inventario') {
-      @if (isEditing()) {
-        <div class="edit-form">
-          <h3>{{ currentItem().id === 0 ? 'Nuevo Producto/Servicio' : 'Editar: ' + currentItem().nombre }}</h3>
-          
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Nombre</label>
-              <input [(ngModel)]="currentItem().nombre" placeholder="Ej: Funda Uso Rudo">
-            </div>
-            
-            <div class="form-group">
-              <label>Categoría</label>
-              <select [(ngModel)]="currentItem().categoria">
-                <option value="Servicios">Servicios</option>
-                <option value="Fundas">Fundas</option>
-                <option value="Cargadores">Cargadores</option>
-                <option value="Refacciones">Refacciones</option>
-                <option value="Audio">Audio</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label>Modelo Compatible</label>
-              <input [(ngModel)]="currentItem().modeloCompatible" placeholder="Ej: iPhone 13, Universal...">
-            </div>
-
-            <div class="form-group">
-              <label>Precio ($)</label>
-              <input type="number" [(ngModel)]="currentItem().precio">
-            </div>
-
-            <div class="form-group">
-              <label>Stock</label>
-              <input type="number" [(ngModel)]="currentItem().stock" [disabled]="currentItem().esServicio">
-            </div>
-
-            <div class="form-group" style="flex-direction: row; align-items: center; gap: 10px; margin-top: 20px;">
-              <input type="checkbox" [(ngModel)]="currentItem().esServicio" id="chkServicio">
-              <label for="chkServicio" style="margin:0; cursor:pointer;">¿Es un Servicio? (Mano de obra)</label>
-            </div>
-            
-            <div class="form-group" style="grid-column: 1 / -1;">
-              <label>Descripción</label>
-              <textarea [(ngModel)]="currentItem().descripcion" rows="3"></textarea>
-            </div>
-
-            <div class="form-group" style="grid-column: 1 / -1;">
-              <label>URL Imagen</label>
-              <input [(ngModel)]="currentItem().imagenUrl" placeholder="https://...">
-            </div>
-          </div>
-
-          <div class="actions">
-            <button class="btn btn-cancel" (click)="cancelEdit()">Cancelar</button>
-            <button class="btn btn-primary" (click)="saveItem()">Guardar Cambios</button>
-          </div>
-        </div>
-      } @else {
-        <button class="btn btn-add" (click)="startAdd()">+ Nuevo Item</button>
-
-        <table>
-          <thead>
-            <tr>
-              <th>Producto / Servicio</th>
-              <th>Categoría</th>
-              <th>Modelo</th>
-              <th>Precio</th>
-              <th>Stock</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (item of items(); track item.id) {
-              <tr>
-                <td>
-                  <strong>{{ item.nombre }}</strong>
-                  @if(item.esServicio) { <span style="font-size: 10px; color: #007bff; border: 1px solid #007bff; padding: 2px 4px; border-radius: 4px; margin-left: 5px;">SERVICIO</span> }
-                </td>
-                <td>{{ item.categoria }}</td>
-                <td>{{ item.modeloCompatible }}</td>
-                <td>${{ item.precio }}</td>
-                <td>
-                  @if (item.esServicio) {
-                    <span>∞</span>
-                  } @else {
-                    <span class="stock-badge" [class.in-stock]="item.stock > 5" [class.low-stock]="item.stock <= 5 && item.stock > 0" [class.out-stock]="item.stock === 0">
-                      {{ item.stock }}
-                    </span>
-                  }
-                </td>
-                <td>
-                  <button class="btn btn-edit" (click)="startEdit(item)">✏️</button>
-                  <button class="btn btn-delete" (click)="deleteItem(item.id)">🗑️</button>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
       }
     }
 

@@ -2,14 +2,12 @@ import { Component, signal, inject, OnInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { MenuItem } from '../../models/menu-item.model';
 import { User } from '../../models/user.model';
 import { ServiceOrder, ReporteRendimiento } from '../../models/service-order.model';
 import { ServiceOrderService } from '../../services/service-order.service';
 import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../environments/environment';
-import { WhatsappService } from '../../services/whatsapp.service'; // <-- NUEVO
-
+import { WhatsappService } from '../../services/whatsapp.service';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -22,52 +20,14 @@ export class AdminDashboardComponent implements OnInit {
   private serviceOrderService = inject(ServiceOrderService);
   private httpClient = inject(HttpClient);
   private authService = inject(AuthService);
-    private whatsappService = inject(WhatsappService); 
-
+  private whatsappService = inject(WhatsappService); 
 
   currentUserName = signal<string>('Administrador');
 
-  activeTab = signal<'inventario' | 'reparto' | 'usuarios' | 'reportes'>('reparto');
+  // Solo quedan 3 pestañas
+  activeTab = signal<'reparto' | 'usuarios' | 'reportes'>('reparto');
   
   todasLasOrdenes = signal<ServiceOrder[]>([]); 
-
-  enviarWhatsApp(orden: ServiceOrder, tipo: 'cambio_estado' | 'encuesta') {
-    if (!orden) return;
-
-    // 1. Buscamos al cliente en la lista de usuarios que ya cargamos
-    const cliente = this.usuarios().find(u => u.id === orden.idCliente);
-    
-    // 2. Extraemos los datos reales. Si por alguna razón no se encuentra, usamos un valor por defecto
-    const telefono = cliente?.telefono || '4737563898'; 
-    const nombreCliente = cliente?.nombre || 'Cliente';
-    
-    // 3. El dispositivo viene directo de la tabla SolicitudServicio (orden)
-    const dispositivo = `${orden.marca} ${orden.modelo}`;
-
-    let mensaje = '';
-    if (tipo === 'cambio_estado') {
-      mensaje = `Hola ${nombreCliente}, tu dispositivo ${dispositivo} (Orden #${orden.id}) ha cambiado de estado a: *${orden.estado}*.`;
-    } else {
-      mensaje = `Hola ${nombreCliente}, tu dispositivo ${dispositivo} (Orden #${orden.id}) está *Listo*. Por favor, califica nuestro servicio aquí: http://localhost:4200/solicitud`;
-    }
-
-    const payload = {
-      cliente: nombreCliente,
-      telefono: telefono, // Mandamos el teléfono real de la BD (ej. 4737563898)
-      ordenId: String(orden.id),
-      estado: orden.estado,
-      dispositivo: dispositivo,
-      mensajePersonalizado: mensaje
-    };
-
-    this.whatsappService.enviarNotificacion(payload).subscribe({
-      next: () => alert(`✅ Mensaje enviado a ${nombreCliente} correctamente.`),
-      error: (err) => {
-        console.error('Error al enviar WhatsApp:', err);
-        alert('❌ Hubo un error al conectar con n8n.');
-      }
-    });
-  }
   
   // Filtramos las que no tienen técnico
   ordenesSinAsignar = computed(() => 
@@ -82,7 +42,7 @@ export class AdminDashboardComponent implements OnInit {
     )
   );
 
-  // NUEVO: Filtramos las que ya están listas
+  // Filtramos las que ya están listas
   ordenesFinalizadas = computed(() => 
     this.todasLasOrdenes().filter(o => o.estado === 'Listo')
   );
@@ -105,14 +65,6 @@ export class AdminDashboardComponent implements OnInit {
 
   isEditingUser = signal(false);
   editUserData = signal<User | null>(null);
-
-  isEditing = signal(false);
-  currentItem = signal<MenuItem>(this.getEmptyItem());
-
-  items = signal<MenuItem[]>([
-    { id: 1, nombre: 'Cambio de Pantalla iPhone 11', categoria: 'Servicios', descripcion: 'Display OLED.', modeloCompatible: 'iPhone 11', precio: 1200, stock: 100, imagenUrl: '', esServicio: true },
-    { id: 4, nombre: 'Funda Survivor', categoria: 'Fundas', descripcion: 'Uso rudo.', modeloCompatible: 'Samsung A54', precio: 250, stock: 5, imagenUrl: '', esServicio: false }
-  ]);
 
   ngOnInit() {
     const user = this.authService.getCurrentUser();
@@ -250,7 +202,6 @@ export class AdminDashboardComponent implements OnInit {
     });
   }
 
-  // FINALIZAR ORDEN
   finalizarOrden(ordenId: number) {
     if (confirm('¿Estás seguro de que deseas marcar esta orden como Lista y finalizarla?')) {
       this.serviceOrderService.finalizarOrden(ordenId).subscribe({
@@ -267,50 +218,36 @@ export class AdminDashboardComponent implements OnInit {
     }
   }
 
-  getEmptyItem(): MenuItem {
-    return {
-      id: 0,
-      nombre: '',
-      categoria: 'Fundas',
-      descripcion: '',
-      modeloCompatible: '',
-      precio: 0,
-      stock: 0,
-      imagenUrl: '',
-      esServicio: false
+  enviarWhatsApp(orden: ServiceOrder, tipo: 'cambio_estado' | 'encuesta') {
+    if (!orden) return;
+
+    const cliente = this.usuarios().find(u => u.id === orden.idCliente);
+    const telefono = cliente?.telefono || '4737563898'; 
+    const nombreCliente = cliente?.nombre || 'Cliente';
+    const dispositivo = `${orden.marca} ${orden.modelo}`;
+
+    let mensaje = '';
+    if (tipo === 'cambio_estado') {
+      mensaje = `Hola ${nombreCliente}, tu dispositivo ${dispositivo} (Orden #${orden.id}) ha cambiado de estado a: *${orden.estado}*.`;
+    } else {
+      mensaje = `Hola ${nombreCliente}, tu dispositivo ${dispositivo} (Orden #${orden.id}) está *Listo*. Por favor, califica nuestro servicio aquí: http://localhost:4200/solicitud`;
+    }
+
+    const payload = {
+      cliente: nombreCliente,
+      telefono: telefono,
+      ordenId: String(orden.id),
+      estado: orden.estado,
+      dispositivo: dispositivo,
+      mensajePersonalizado: mensaje
     };
-  }
 
-  startEdit(item: MenuItem) {
-    this.currentItem.set({ ...item });
-    this.isEditing.set(true);
-  }
-
-  startAdd() {
-    this.currentItem.set(this.getEmptyItem());
-    this.isEditing.set(true);
-  }
-
-  saveItem() {
-    const itemToSave = this.currentItem();
-    this.items.update(currentItems => {
-      if (itemToSave.id === 0) {
-        return [...currentItems, { ...itemToSave, id: Date.now() }];
-      } else {
-        return currentItems.map(i => i.id === itemToSave.id ? itemToSave : i);
+    this.whatsappService.enviarNotificacion(payload).subscribe({
+      next: () => alert(`✅ Mensaje enviado a ${nombreCliente} correctamente.`),
+      error: (err) => {
+        console.error('Error al enviar WhatsApp:', err);
+        alert('❌ Hubo un error al conectar con n8n.');
       }
     });
-    this.cancelEdit();
-  }
-
-  deleteItem(id: number) {
-    if (confirm('¿Estás seguro de eliminar este producto?')) {
-      this.items.update(current => current.filter(i => i.id !== id));
-    }
-  }
-
-  cancelEdit() {
-    this.isEditing.set(false);
-    this.currentItem.set(this.getEmptyItem());
   }
 }
